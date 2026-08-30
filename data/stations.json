@@ -1,0 +1,668 @@
+[
+  {
+    "_id": "CHALLAGHATTA",
+    "name": "Challaghatta",
+    "line": "Purple",
+    "sequence": 1,
+    "location": { "type": "Point", "coordinates": [77.4970, 12.9710] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KENGERI_BUS_TERMINAL",
+    "name": "Kengeri Bus Terminal",
+    "line": "Purple",
+    "sequence": 2,
+    "location": { "type": "Point", "coordinates": [77.4990, 12.9705] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KENGERI",
+    "name": "Kengeri",
+    "line": "Purple",
+    "sequence": 3,
+    "location": { "type": "Point", "coordinates": [77.5080, 12.9695] },
+    "is_interchange": false
+  },
+  {
+    "_id": "PATTANAGERE",
+    "name": "Pattanagere",
+    "line": "Purple",
+    "sequence": 4,
+    "location": { "type": "Point", "coordinates": [77.5190, 12.9692] },
+    "is_interchange": false
+  },
+  {
+    "_id": "JNANA_BHARATHI",
+    "name": "Jnana Bharathi",
+    "line": "Purple",
+    "sequence": 5,
+    "location": { "type": "Point", "coordinates": [77.5280, 12.9600] },
+    "is_interchange": false
+  },
+  {
+    "_id": "RAJARAJESHWARI_NAGAR",
+    "name": "Rajarajeshwari Nagar",
+    "line": "Purple",
+    "sequence": 6,
+    "location": { "type": "Point", "coordinates": [77.5350, 12.9590] },
+    "is_interchange": false
+  },
+  {
+    "_id": "NAYANDAHALLI",
+    "name": "Nayandahalli",
+    "line": "Purple",
+    "sequence": 7,
+    "location": { "type": "Point", "coordinates": [77.5430, 12.9580] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MYSURU_ROAD",
+    "name": "Mysuru Road",
+    "line": "Purple",
+    "sequence": 8,
+    "location": { "type": "Point", "coordinates": [77.5500, 12.9578] },
+    "is_interchange": false
+  },
+  {
+    "_id": "DEEPANJALI_NAGAR",
+    "name": "Deepanjali Nagar",
+    "line": "Purple",
+    "sequence": 9,
+    "location": { "type": "Point", "coordinates": [77.5560, 12.9600] },
+    "is_interchange": false
+  },
+  {
+    "_id": "ATTIGUPPE",
+    "name": "Attiguppe",
+    "line": "Purple",
+    "sequence": 10,
+    "location": { "type": "Point", "coordinates": [77.5610, 12.9620] },
+    "is_interchange": false
+  },
+  {
+    "_id": "VIJAYANAGAR",
+    "name": "Vijayanagar",
+    "line": "Purple",
+    "sequence": 11,
+    "location": { "type": "Point", "coordinates": [77.5680, 12.9680] },
+    "is_interchange": false
+  },
+  {
+    "_id": "HOSAHALLI",
+    "name": "Hosahalli",
+    "line": "Purple",
+    "sequence": 12,
+    "location": { "type": "Point", "coordinates": [77.5720, 12.9700] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MAGADI_ROAD",
+    "name": "Magadi Road",
+    "line": "Purple",
+    "sequence": 13,
+    "location": { "type": "Point", "coordinates": [77.5570, 12.9750] },
+    "is_interchange": false
+  },
+  {
+    "_id": "CITY_RAILWAY_STATION",
+    "name": "City Railway Station",
+    "line": "Purple",
+    "sequence": 14,
+    "location": { "type": "Point", "coordinates": [77.5700, 12.9770] },
+    "is_interchange": false
+  },
+  {
+    "_id": "NADAPRABHU_KEMPEGOWDA_STATION_MAJESTIC",
+    "name": "Nadaprabhu Kempegowda Station, Majestic",
+    "line": "Purple",
+    "sequence": 15,
+    "location": { "type": "Point", "coordinates": [77.5730, 12.9770] },
+    "is_interchange": true
+  },
+  {
+    "_id": "SIR_M_VISVESHWARAYA_STATION_CENTRAL_COLLEGE",
+    "name": "Sir M. Visveshwaraya Station, Central College",
+    "line": "Purple",
+    "sequence": 16,
+    "location": { "type": "Point", "coordinates": [77.5810, 12.9770] },
+    "is_interchange": false
+  },
+  {
+    "_id": "DR_BR_AMBEDKAR_STATION_VIDHANA_SOUDHA",
+    "name": "Dr. B. R. Ambedkar Station, Vidhana Soudha",
+    "line": "Purple",
+    "sequence": 17,
+    "location": { "type": "Point", "coordinates": [77.5910, 12.9790] },
+    "is_interchange": false
+  },
+  {
+    "_id": "CUBBON_PARK",
+    "name": "Cubbon Park",
+    "line": "Purple",
+    "sequence": 18,
+    "location": { "type": "Point", "coordinates": [77.5950, 12.9790] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MG_ROAD",
+    "name": "MG Road",
+    "line": "Purple",
+    "sequence": 19,
+    "location": { "type": "Point", "coordinates": [77.6060, 12.9758] },
+    "is_interchange": false
+  },
+  {
+    "_id": "TRINITY",
+    "name": "Trinity",
+    "line": "Purple",
+    "sequence": 20,
+    "location": { "type": "Point", "coordinates": [77.6190, 12.9720] },
+    "is_interchange": false
+  },
+  {
+    "_id": "HALASURU",
+    "name": "Halasuru",
+    "line": "Purple",
+    "sequence": 21,
+    "location": { "type": "Point", "coordinates": [77.6210, 12.9810] },
+    "is_interchange": false
+  },
+  {
+    "_id": "INDIRANAGAR",
+    "name": "Indiranagar",
+    "line": "Purple",
+    "sequence": 22,
+    "location": { "type": "Point", "coordinates": [77.6410, 12.9785] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SWAMI_VIVEKANANDA_ROAD",
+    "name": "Swami Vivekananda Road",
+    "line": "Purple",
+    "sequence": 23,
+    "location": { "type": "Point", "coordinates": [77.6480, 12.9850] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BAIYAPPANAHALLI",
+    "name": "Baiyappanahalli",
+    "line": "Purple",
+    "sequence": 24,
+    "location": { "type": "Point", "coordinates": [77.6560, 12.9870] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BENNIGANAHALLI",
+    "name": "Benniganahalli",
+    "line": "Purple",
+    "sequence": 25,
+    "location": { "type": "Point", "coordinates": [77.6650, 12.9920] },
+    "is_interchange": false
+  },
+  {
+    "_id": "HOODI",
+    "name": "Hoodi",
+    "line": "Purple",
+    "sequence": 26,
+    "location": { "type": "Point", "coordinates": [77.6750, 12.9920] },
+    "is_interchange": false
+  },
+  {
+    "_id": "GARUDACHARPALYA",
+    "name": "Garudacharpalya",
+    "line": "Purple",
+    "sequence": 27,
+    "location": { "type": "Point", "coordinates": [77.6860, 12.9930] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MAHADEVAPURA",
+    "name": "Mahadevapura",
+    "line": "Purple",
+    "sequence": 28,
+    "location": { "type": "Point", "coordinates": [77.6960, 12.9940] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KRISHNARAJAPURA",
+    "name": "Krishnarajapura",
+    "line": "Purple",
+    "sequence": 29,
+    "location": { "type": "Point", "coordinates": [77.7020, 12.9960] },
+    "is_interchange": false
+  },
+  {
+    "_id": "CHANNASANDRA",
+    "name": "Channasandra",
+    "line": "Purple",
+    "sequence": 30,
+    "location": { "type": "Point", "coordinates": [77.7080, 12.9965] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KADUGODI",
+    "name": "Kadugodi",
+    "line": "Purple",
+    "sequence": 31,
+    "location": { "type": "Point", "coordinates": [77.7170, 12.9960] },
+    "is_interchange": false
+  },
+  {
+    "_id": "PATTANDUR_AGRAHARA",
+    "name": "Pattandur Agrahara",
+    "line": "Purple",
+    "sequence": 32,
+    "location": { "type": "Point", "coordinates": [77.7260, 12.9965] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SRI_SATHYA_SAI_HOSPITAL",
+    "name": "Sri Sathya Sai Hospital",
+    "line": "Purple",
+    "sequence": 33,
+    "location": { "type": "Point", "coordinates": [77.7340, 12.9970] },
+    "is_interchange": false
+  },
+  {
+    "_id": "NALLURHALLI",
+    "name": "Nallurhalli",
+    "line": "Purple",
+    "sequence": 34,
+    "location": { "type": "Point", "coordinates": [77.7440, 12.9969] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KUNDALAHALLI",
+    "name": "Kundalahalli",
+    "line": "Purple",
+    "sequence": 35,
+    "location": { "type": "Point", "coordinates": [77.7530, 12.9955] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SIDDHAPURA",
+    "name": "Siddhapura",
+    "line": "Purple",
+    "sequence": 36,
+    "location": { "type": "Point", "coordinates": [77.7570, 12.9950] },
+    "is_interchange": false
+  },
+  {
+    "_id": "HOODI_CIRCLE",
+    "name": "Hoodi Circle",
+    "line": "Purple",
+    "sequence": 37,
+    "location": { "type": "Point", "coordinates": [77.7620, 12.9943] },
+    "is_interchange": false
+  },
+  {
+    "_id": "WHITEFIELD",
+    "name": "Whitefield (Kadugodi)",
+    "line": "Purple",
+    "sequence": 38,
+    "location": { "type": "Point", "coordinates": [77.7700, 12.9935] },
+    "is_interchange": false
+  },
+
+  {
+    "_id": "MADAVARA",
+    "name": "Madavara",
+    "line": "Green",
+    "sequence": 1,
+    "location": { "type": "Point", "coordinates": [77.5130, 13.0960] },
+    "is_interchange": false
+  },
+  {
+    "_id": "CHIKKABIDARAKALLU",
+    "name": "Chikkabidarakallu",
+    "line": "Green",
+    "sequence": 2,
+    "location": { "type": "Point", "coordinates": [77.5180, 13.0860] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MANJUNATHANAGAR",
+    "name": "Manjunathanagar",
+    "line": "Green",
+    "sequence": 3,
+    "location": { "type": "Point", "coordinates": [77.5250, 13.0730] },
+    "is_interchange": false
+  },
+  {
+    "_id": "NAGASANDRA",
+    "name": "Nagasandra",
+    "line": "Green",
+    "sequence": 4,
+    "location": { "type": "Point", "coordinates": [77.5290, 13.0620] },
+    "is_interchange": false
+  },
+  {
+    "_id": "DASARAHALLI",
+    "name": "Dasarahalli",
+    "line": "Green",
+    "sequence": 5,
+    "location": { "type": "Point", "coordinates": [77.5320, 13.0520] },
+    "is_interchange": false
+  },
+  {
+    "_id": "JALAHALLI",
+    "name": "Jalahalli",
+    "line": "Green",
+    "sequence": 6,
+    "location": { "type": "Point", "coordinates": [77.5370, 13.0430] },
+    "is_interchange": false
+  },
+  {
+    "_id": "PEENYA_INDUSTRY",
+    "name": "Peenya Industry",
+    "line": "Green",
+    "sequence": 7,
+    "location": { "type": "Point", "coordinates": [77.5370, 13.0340] },
+    "is_interchange": false
+  },
+  {
+    "_id": "PEENYA",
+    "name": "Peenya",
+    "line": "Green",
+    "sequence": 8,
+    "location": { "type": "Point", "coordinates": [77.5330, 13.0270] },
+    "is_interchange": false
+  },
+  {
+    "_id": "GORAGUNTEPALYA",
+    "name": "Goraguntepalya",
+    "line": "Green",
+    "sequence": 9,
+    "location": { "type": "Point", "coordinates": [77.5370, 13.0200] },
+    "is_interchange": false
+  },
+  {
+    "_id": "YESHWANTPUR",
+    "name": "Yeshwantpur",
+    "line": "Green",
+    "sequence": 10,
+    "location": { "type": "Point", "coordinates": [77.5420, 13.0100] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SANDAL_SOAP_FACTORY",
+    "name": "Sandal Soap Factory",
+    "line": "Green",
+    "sequence": 11,
+    "location": { "type": "Point", "coordinates": [77.5480, 13.0050] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MAHALAKSHMI",
+    "name": "Mahalakshmi",
+    "line": "Green",
+    "sequence": 12,
+    "location": { "type": "Point", "coordinates": [77.5510, 12.9990] },
+    "is_interchange": false
+  },
+  {
+    "_id": "RAJAJINAGAR",
+    "name": "Rajajinagar",
+    "line": "Green",
+    "sequence": 13,
+    "location": { "type": "Point", "coordinates": [77.5560, 12.9930] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MAHAKAVI_KUVEMPU_ROAD",
+    "name": "Mahakavi Kuvempu Road",
+    "line": "Green",
+    "sequence": 14,
+    "location": { "type": "Point", "coordinates": [77.5620, 12.9890] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SRIRAMPURA",
+    "name": "Srirampura",
+    "line": "Green",
+    "sequence": 15,
+    "location": { "type": "Point", "coordinates": [77.5660, 12.9850] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MANTRI_SQUARE_SAMPIGE_ROAD",
+    "name": "Mantri Square Sampige Road",
+    "line": "Green",
+    "sequence": 16,
+    "location": { "type": "Point", "coordinates": [77.5700, 12.9810] },
+    "is_interchange": false
+  },
+  {
+    "_id": "MAJESTIC_GREEN",
+    "name": "Nadaprabhu Kempegowda Station, Majestic",
+    "line": "Green",
+    "sequence": 17,
+    "location": { "type": "Point", "coordinates": [77.5730, 12.9770] },
+    "is_interchange": true
+  },
+  {
+    "_id": "CHICKPETE",
+    "name": "Chickpete",
+    "line": "Green",
+    "sequence": 18,
+    "location": { "type": "Point", "coordinates": [77.5750, 12.9730] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KRISHNA_RAJENDRA_MARKET",
+    "name": "Krishna Rajendra Market",
+    "line": "Green",
+    "sequence": 19,
+    "location": { "type": "Point", "coordinates": [77.5780, 12.9670] },
+    "is_interchange": false
+  },
+  {
+    "_id": "NATIONAL_COLLEGE",
+    "name": "National College",
+    "line": "Green",
+    "sequence": 20,
+    "location": { "type": "Point", "coordinates": [77.5740, 12.9590] },
+    "is_interchange": false
+  },
+  {
+    "_id": "LALBAGH",
+    "name": "Lalbagh",
+    "line": "Green",
+    "sequence": 21,
+    "location": { "type": "Point", "coordinates": [77.5720, 12.9520] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SOUTH_END_CIRCLE",
+    "name": "South End Circle",
+    "line": "Green",
+    "sequence": 22,
+    "location": { "type": "Point", "coordinates": [77.5710, 12.9440] },
+    "is_interchange": false
+  },
+  {
+    "_id": "JAYANAGAR",
+    "name": "Jayanagar",
+    "line": "Green",
+    "sequence": 23,
+    "location": { "type": "Point", "coordinates": [77.5810, 12.9360] },
+    "is_interchange": false
+  },
+  {
+    "_id": "RV_ROAD",
+    "name": "Rashtreeya Vidyalaya Road",
+    "line": "Green",
+    "sequence": 24,
+    "location": { "type": "Point", "coordinates": [77.5845, 12.9340] },
+    "is_interchange": true
+  },
+  {
+    "_id": "BANASHANKARI",
+    "name": "Banashankari",
+    "line": "Green",
+    "sequence": 25,
+    "location": { "type": "Point", "coordinates": [77.5710, 12.9250] },
+    "is_interchange": false
+  },
+  {
+    "_id": "JP_NAGAR",
+    "name": "JP Nagar",
+    "line": "Green",
+    "sequence": 26,
+    "location": { "type": "Point", "coordinates": [77.5720, 12.9110] },
+    "is_interchange": false
+  },
+  {
+    "_id": "YELACHENAHALLI",
+    "name": "Yelachenahalli",
+    "line": "Green",
+    "sequence": 27,
+    "location": { "type": "Point", "coordinates": [77.5700, 12.9010] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KONANAKUNTE_CROSS",
+    "name": "Konanakunte Cross",
+    "line": "Green",
+    "sequence": 28,
+    "location": { "type": "Point", "coordinates": [77.5650, 12.8920] },
+    "is_interchange": false
+  },
+  {
+    "_id": "DODDAKALLASANDRA",
+    "name": "Doddakallasandra",
+    "line": "Green",
+    "sequence": 29,
+    "location": { "type": "Point", "coordinates": [77.5620, 12.8840] },
+    "is_interchange": false
+  },
+  {
+    "_id": "VAJARAHALLI",
+    "name": "Vajarahalli",
+    "line": "Green",
+    "sequence": 30,
+    "location": { "type": "Point", "coordinates": [77.5590, 12.8770] },
+    "is_interchange": false
+  },
+  {
+    "_id": "THALAGHATTAPURA",
+    "name": "Thalaghattapura",
+    "line": "Green",
+    "sequence": 31,
+    "location": { "type": "Point", "coordinates": [77.5570, 12.8690] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SILK_INSTITUTE",
+    "name": "Silk Institute",
+    "line": "Green",
+    "sequence": 32,
+    "location": { "type": "Point", "coordinates": [77.5530, 12.8610] },
+    "is_interchange": false
+  },
+
+  {
+    "_id": "RV_ROAD_YELLOW",
+    "name": "Rashtreeya Vidyalaya Road",
+    "line": "Yellow",
+    "sequence": 1,
+    "location": { "type": "Point", "coordinates": [77.5845, 12.9340] },
+    "is_interchange": true
+  },
+  {
+    "_id": "JAYADEVA_HOSPITAL",
+    "name": "Jayadeva Hospital",
+    "line": "Yellow",
+    "sequence": 2,
+    "location": { "type": "Point", "coordinates": [77.5930, 12.9260] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BTM_LAYOUT",
+    "name": "BTM Layout",
+    "line": "Yellow",
+    "sequence": 3,
+    "location": { "type": "Point", "coordinates": [77.6070, 12.9160] },
+    "is_interchange": false
+  },
+  {
+    "_id": "CENTRAL_SILK_BOARD",
+    "name": "Central Silk Board",
+    "line": "Yellow",
+    "sequence": 4,
+    "location": { "type": "Point", "coordinates": [77.6230, 12.9070] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BOMMANAHALLI",
+    "name": "Bommanahalli",
+    "line": "Yellow",
+    "sequence": 5,
+    "location": { "type": "Point", "coordinates": [77.6230, 12.8970] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BERATENA_AGRAHARA",
+    "name": "Beratena Agrahara",
+    "line": "Yellow",
+    "sequence": 6,
+    "location": { "type": "Point", "coordinates": [77.6260, 12.8850] },
+    "is_interchange": false
+  },
+  {
+    "_id": "HOSA_ROAD",
+    "name": "Hosa Road",
+    "line": "Yellow",
+    "sequence": 7,
+    "location": { "type": "Point", "coordinates": [77.6340, 12.8720] },
+    "is_interchange": false
+  },
+  {
+    "_id": "KUDLU_GATE",
+    "name": "Kudlu Gate",
+    "line": "Yellow",
+    "sequence": 8,
+    "location": { "type": "Point", "coordinates": [77.6390, 12.8620] },
+    "is_interchange": false
+  },
+  {
+    "_id": "SINGASANDRA",
+    "name": "Singasandra",
+    "line": "Yellow",
+    "sequence": 9,
+    "location": { "type": "Point", "coordinates": [77.6420, 12.8530] },
+    "is_interchange": false
+  },
+  {
+    "_id": "ELECTRONIC_CITY",
+    "name": "Electronic City",
+    "line": "Yellow",
+    "sequence": 10,
+    "location": { "type": "Point", "coordinates": [77.6500, 12.8440] },
+    "is_interchange": false
+  },
+  {
+    "_id": "BIOCON_HEBBAGODI",
+    "name": "Biocon Hebbagodi",
+    "line": "Yellow",
+    "sequence": 11,
+    "location": { "type": "Point", "coordinates": [77.6540, 12.8300] },
+    "is_interchange": false
+  },
+  {
+    "_id": "INFOSYS_KONAPPANA_AGRAHARA",
+    "name": "Infosys Konappana Agrahara",
+    "line": "Yellow",
+    "sequence": 12,
+    "location": { "type": "Point", "coordinates": [77.6590, 12.8200] },
+    "is_interchange": false
+  },
+  {
+    "_id": "DELTA_ELECTRONICS_BOMMASANDRA",
+    "name": "Delta Electronics Bommasandra",
+    "line": "Yellow",
+    "sequence": 13,
+    "location": { "type": "Point", "coordinates": [77.6640, 12.8080] },
+    "is_interchange": false
+  }
+]

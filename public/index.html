@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Namma Metro Analytics — Bengaluru Metro Big Data Dashboard</title>
+  <meta name="description" content="Interactive analytics dashboard for Bengaluru Namma Metro ridership data. Explore station stats, route volumes, and real-time analytics powered by MongoDB.">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- ════════════ Header ════════════ -->
+    <header class="header" id="app-header">
+      <div class="header-brand">
+        <div class="header-logo">🚇</div>
+        <div>
+          <div class="header-title">Namma Metro Analytics</div>
+          <div class="header-subtitle">Bengaluru · MongoDB Big Data</div>
+        </div>
+      </div>
+      <nav class="header-nav">
+        <button class="nav-btn active" data-view="map" id="nav-map">
+          <span class="icon">🗺️</span> Map
+        </button>
+        <button class="nav-btn" data-view="routes" id="nav-routes">
+          <span class="icon">🔀</span> Routes
+        </button>
+        <button class="nav-btn" data-view="dashboard" id="nav-dashboard">
+          <span class="icon">📊</span> Analytics
+        </button>
+        <button class="nav-btn" data-view="nearby" id="nav-nearby">
+          <span class="icon">📍</span> Nearby
+        </button>
+      </nav>
+    </header>
+
+    <!-- ════════════ Main Content ════════════ -->
+    <main class="main-content">
+
+      <!-- ── Map View ── -->
+      <section class="map-section active" id="view-map">
+        <div id="metro-map"></div>
+        <div class="map-overlay" id="map-legend">
+          <h3>Metro Lines</h3>
+          <div class="line-legend">
+            <div class="legend-item">
+              <span class="legend-dot purple"></span>
+              <span>Purple Line</span>
+              <span class="legend-count" id="purple-count">38</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot green"></span>
+              <span>Green Line</span>
+              <span class="legend-count" id="green-count">32</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot yellow"></span>
+              <span>Yellow Line</span>
+              <span class="legend-count" id="yellow-count">13</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Route Search View ── -->
+      <section class="route-search-section" id="view-routes">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">🔀 Route Search</h1>
+          <p class="dashboard-desc">Search trip volume between any two stations over the last 90 days.</p>
+        </div>
+
+        <form class="route-search-form" id="route-search-form">
+          <div class="form-group">
+            <label for="from-station">From Station</label>
+            <select id="from-station" required>
+              <option value="">Select origin...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="to-station">To Station</label>
+            <select id="to-station" required>
+              <option value="">Select destination...</option>
+            </select>
+          </div>
+          <button type="submit" class="btn-search" id="btn-search-route">Search Route</button>
+        </form>
+
+        <div class="route-results" id="route-results">
+          <div class="route-headline" id="route-headline">
+            <div>
+              <div class="route-names">
+                <span id="route-from-name">—</span>
+                <span class="route-arrow"> → </span>
+                <span id="route-to-name">—</span>
+              </div>
+            </div>
+            <div class="route-stat">
+              <div class="route-stat-value" id="route-avg-passengers">0</div>
+              <div class="route-stat-label">Avg passengers / day</div>
+            </div>
+          </div>
+
+          <div class="charts-grid">
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Daily Trip Volume (Forward)</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="route-forward-chart"></canvas>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Daily Trip Volume (Return)</span>
+              </div>
+              <div class="chart-container">
+                <canvas id="route-reverse-chart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-grid" id="route-stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon">🎫</div>
+              <div class="stat-value" id="route-total-trips">0</div>
+              <div class="stat-label">Total Trips</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-value" id="route-total-passengers">0</div>
+              <div class="stat-label">Total Passengers</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Analytics Dashboard View ── -->
+      <section class="dashboard-section" id="view-dashboard">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">📊 Analytics Dashboard</h1>
+          <p class="dashboard-desc">System-wide ridership analytics powered by MongoDB aggregation pipelines.</p>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid" id="summary-stats">
+          <div class="stat-card">
+            <div class="stat-icon">🚇</div>
+            <div class="stat-value" id="stat-stations">—</div>
+            <div class="stat-label">Metro Stations</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">🎫</div>
+            <div class="stat-value" id="stat-trips">—</div>
+            <div class="stat-label">Total Trip Records</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-value" id="stat-passengers">—</div>
+            <div class="stat-label">Total Passengers</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📅</div>
+            <div class="stat-value" id="stat-days">90</div>
+            <div class="stat-label">Days of Data</div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1 -->
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🏆 Top 10 Busiest Stations</span>
+              <span class="card-badge">$group + $sort</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="top-stations-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">⏰ Peak Hours (System-wide)</span>
+              <span class="card-badge">$group by $hour</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="peak-hours-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2 -->
+        <div class="charts-grid">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🚈 Per-Line Ridership</span>
+              <span class="card-badge">$group by line</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="line-stats-chart"></canvas>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">🔝 Top 15 Busiest Routes</span>
+              <span class="card-badge">$group {from,to}</span>
+            </div>
+            <div style="max-height: 320px; overflow-y: auto;">
+              <table class="routes-table" id="top-routes-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Passengers</th>
+                  </tr>
+                </thead>
+                <tbody id="top-routes-tbody">
+                  <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:20px;">Loading...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- About Note -->
+        <div class="about-note">
+          <strong>⚠️ About the Data:</strong> All ridership numbers in this dashboard are <strong>synthetic / generated</strong> for
+          demonstration purposes as part of a MongoDB Big Data Analytics course project. Station names and locations are based on
+          real Namma Metro stations, but trip volumes and passenger counts are entirely fictional. The purpose is to demonstrate
+          MongoDB's capabilities for storing, querying, and aggregating large datasets (~1M+ documents).
+        </div>
+      </section>
+
+      <!-- ── Nearby Stations View ── -->
+      <section class="nearby-section" id="view-nearby">
+        <div class="dashboard-header">
+          <h1 class="dashboard-title">📍 Nearest Stations</h1>
+          <p class="dashboard-desc">Find the closest metro stations to any location using MongoDB's $geoNear and 2dsphere index.</p>
+        </div>
+
+        <form class="route-search-form" id="nearby-form">
+          <div class="form-group">
+            <label for="nearby-lat">Latitude</label>
+            <input type="number" id="nearby-lat" step="0.0001" placeholder="e.g. 12.9716" value="12.9716" required>
+          </div>
+          <div class="form-group">
+            <label for="nearby-lng">Longitude</label>
+            <input type="number" id="nearby-lng" step="0.0001" placeholder="e.g. 77.5946" value="77.5946" required>
+          </div>
+          <button type="submit" class="btn-search" id="btn-nearby">Find Nearest</button>
+          <button type="button" class="btn-search" id="btn-use-location" style="background: linear-gradient(135deg, var(--green-line), #059669);">📍 Use My Location</button>
+        </form>
+
+        <div class="nearby-results" id="nearby-results"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- App Scripts -->
+  <script src="map.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>
