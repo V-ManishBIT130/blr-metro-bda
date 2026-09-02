@@ -1,8 +1,9 @@
 /**
  * Stations API Routes
- * GET /api/stations          — List all stations for map markers
- * GET /api/stations/:id/stats — Hourly/daily ridership for one station
- * GET /api/stations/nearby    — Nearest stations to a lat/lng point
+ * GET /api/stations             — List all stations for map markers
+ * GET /api/stations/nearby      — Nearest stations to a lat/lng point
+ * GET /api/stations/:id/hotspots — Curated hotspots near a station ($geoNear)
+ * GET /api/stations/:id/stats   — Hourly/daily ridership for one station
  */
 const express = require('express');
 const router = express.Router();
@@ -57,6 +58,70 @@ router.get('/nearby', async (req, res) => {
   } catch (err) {
     console.error('Error finding nearby stations:', err);
     res.status(500).json({ error: 'Failed to find nearby stations' });
+  }
+});
+
+/**
+ * GET /api/stations/:id/hotspots?limit=6&radius=3000
+ * Curated city hotspots (Cubbon Park, Lalbagh, ISKCON, ...) near one station.
+ * Uses $geoNear on the `hotspots` collection (2dsphere index).
+ * If no hotspot is within `radius`, returns the nearest city-wide ones so
+ * every station popup shows at least one place (`fallback: true`).
+ */
+router.get('/:id/hotspots', async (req, res) => {
+  try {
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 6, 1), 20);
+    const radius = parseFloat(req.query.radius) || 3000;
+    const db = getDB();
+
+    const station = await db.collection('stations').findOne(
+      { _id: req.params.id },
+      { projection: { name: 1, line: 1, location: 1 } }
+    );
+    if (!station) {
+      return res.status(404).json({ error: `Station '${req.params.id}' not found` });
+    }
+
+    const hotspotsCol = db.collection('hotspots');
+    const runGeoNear = (maxDistance) => hotspotsCol.aggregate([
+      {
+        $geoNear: {
+          near: station.location,
+          distanceField: 'distance_meters',
+          spherical: true,
+          ...(maxDistance ? { maxDistance } : {})
+        }
+      },
+      { $limit: limit }
+    ]).toArray();
+
+    let hotspots = await runGeoNear(radius);
+    let fallback = false;
+    if (hotspots.length === 0) {
+      fallback = true;
+      hotspots = await runGeoNear(null);
+    }
+
+    res.json({
+      station: { _id: station._id, name: station.name, line: station.line },
+      radius_meters: fallback ? null : radius,
+      fallback,
+      count: hotspots.length,
+      hotspots: hotspots.map(h => ({
+        _id: h._id,
+        name: h.name,
+        category: h.category,
+        description: h.description,
+        rating: h.rating,
+        timings: h.timings,
+        entry: h.entry,
+        distance_meters: Math.round(h.distance_meters),
+        walk_minutes: Math.max(1, Math.round(h.distance_meters / 80))
+      }))
+    });
+  } catch (err) {
+    console.error('Error fetching hotspots:', err);
+    res.status(500).json({ error: 'Failed to fetch hotspots' });
   }
 });
 

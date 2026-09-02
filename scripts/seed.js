@@ -2,6 +2,8 @@
  * Seed Script for Bengaluru Metro Analytics
  * ==========================================
  * 1. Inserts 83 stations into the `stations` collection with a 2dsphere index.
+ * 1b. Inserts ~40 curated city hotspots (Cubbon Park, Lalbagh, ...) into the
+ *     `hotspots` collection with a 2dsphere index (nearby-places feature).
  * 2. Generates ~1M synthetic trip documents with realistic patterns:
  *    - Bimodal weekday peaks (8-10am, 6-8pm), flat weekends
  *    - Interchange stations (Majestic, RV Road) get higher traffic
@@ -21,6 +23,9 @@ const dbName = process.env.DB_NAME || 'blr_metro';
 
 // ── Station data ──
 const stations = require('../data/stations.json');
+
+// ── Curated city hotspots (nearby-places feature) ──
+const hotspots = require('../data/hotspots.json');
 
 // ── Configuration ──
 const DAYS_OF_DATA = 90;
@@ -118,6 +123,15 @@ async function seed() {
     await stationsCol.createIndex({ location: '2dsphere' });
     await stationsCol.createIndex({ line: 1 });
     console.log(`   ✅ Inserted ${stations.length} stations with 2dsphere index.`);
+
+    // ── 1b. Seed Hotspots (tourist/city places near stations) ──
+    console.log('\n📍 Seeding city hotspots...');
+    const hotspotsCol = db.collection('hotspots');
+    await hotspotsCol.deleteMany({});
+    await hotspotsCol.insertMany(hotspots);
+    await hotspotsCol.createIndex({ location: '2dsphere' });
+    await hotspotsCol.createIndex({ category: 1 });
+    console.log(`   ✅ Inserted ${hotspots.length} hotspots with 2dsphere index.`);
 
     // ── 2. Generate Synthetic Trips ──
     console.log('\n🎫 Generating synthetic trips...');
@@ -219,10 +233,12 @@ async function seed() {
     // ── 4. Summary ──
     const tripCount = await tripsCol.countDocuments();
     const stationCount = await stationsCol.countDocuments();
+    const hotspotCount = await hotspotsCol.countDocuments();
     console.log('\n' + '═'.repeat(50));
     console.log('  🎉 SEED COMPLETE');
     console.log('═'.repeat(50));
     console.log(`  Stations: ${stationCount}`);
+    console.log(`  Hotspots: ${hotspotCount}`);
     console.log(`  Trips:    ${tripCount.toLocaleString()}`);
     console.log(`  Date range: ${startDate.toISOString().split('T')[0]} → ${endDate.toISOString().split('T')[0]}`);
     console.log('═'.repeat(50));

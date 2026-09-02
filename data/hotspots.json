@@ -1,0 +1,402 @@
+[
+  {
+    "_id": "CUBBON_PARK",
+    "name": "Cubbon Park",
+    "category": "Park",
+    "description": "300-acre heritage park in the heart of the city with walking trails, lawns, statues and the State Central Library.",
+    "location": { "type": "Point", "coordinates": [77.5929, 12.9763] },
+    "rating": 4.6,
+    "timings": "5:00 AM – 8:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "VISVESVARAYA_MUSEUM",
+    "name": "Visvesvaraya Industrial & Technological Museum",
+    "category": "Museum",
+    "description": "Interactive science museum with engines, space galleries and hands-on exhibits. Great for kids.",
+    "location": { "type": "Point", "coordinates": [77.5930, 12.9755] },
+    "rating": 4.5,
+    "timings": "9:30 AM – 6:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "GOVERNMENT_MUSEUM",
+    "name": "Government Museum & Venkatappa Art Gallery",
+    "category": "Museum",
+    "description": "One of India's oldest museums — rare antiques, geology gallery and classic Mysore paintings.",
+    "location": { "type": "Point", "coordinates": [77.5952, 12.9764] },
+    "rating": 4.3,
+    "timings": "10:00 AM – 5:00 PM",
+    "entry": "₹15"
+  },
+  {
+    "_id": "CHITRAKALA_PARISHATH",
+    "name": "Karnataka Chitrakala Parishath",
+    "category": "Art Gallery",
+    "description": "Premier art college and gallery complex with Raja Ravi Varma paintings and annual art fairs.",
+    "location": { "type": "Point", "coordinates": [77.5947, 12.9750] },
+    "rating": 4.4,
+    "timings": "10:00 AM – 7:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "MUSICAL_FOUNTAIN_PARK",
+    "name": "Indira Gandhi Musical Fountain Park",
+    "category": "Park",
+    "description": "Dancing musical fountain show with coloured lights every evening opposite Vidhana Soudha.",
+    "location": { "type": "Point", "coordinates": [77.5903, 12.9805] },
+    "rating": 4.4,
+    "timings": "6:30 AM – 8:00 PM · shows 7 PM",
+    "entry": "₹30"
+  },
+  {
+    "_id": "JN_PLANETARIUM",
+    "name": "Jawaharlal Nehru Planetarium",
+    "category": "Museum",
+    "description": "Sky-theatre shows on stars and galaxies, plus a science park with telescope views.",
+    "location": { "type": "Point", "coordinates": [77.5894, 12.9804] },
+    "rating": 4.5,
+    "timings": "10:00 AM – 5:30 PM",
+    "entry": "₹60"
+  },
+  {
+    "_id": "VIDHANA_SOUDHA",
+    "name": "Vidhana Soudha",
+    "category": "Monument",
+    "description": "Neo-Dravidian seat of the Karnataka legislature — Bengaluru's most iconic building, lit up on Sundays.",
+    "location": { "type": "Point", "coordinates": [77.5912, 12.9794] },
+    "rating": 4.7,
+    "timings": "Exterior viewing anytime",
+    "entry": "Free"
+  },
+  {
+    "_id": "CHINNASWAMY_STADIUM",
+    "name": "M. Chinnaswamy Stadium",
+    "category": "Stadium",
+    "description": "Legendary cricket ground and home of RCB — electric atmosphere on IPL and international match days.",
+    "location": { "type": "Point", "coordinates": [77.5998, 12.9789] },
+    "rating": 4.6,
+    "timings": "Match/event days",
+    "entry": "Ticketed"
+  },
+  {
+    "_id": "ST_MARKS_CATHEDRAL",
+    "name": "St. Mark's Cathedral",
+    "category": "Church",
+    "description": "1808 colonial-era cathedral with a beautiful baroque dome and serene interiors.",
+    "location": { "type": "Point", "coordinates": [77.6010, 12.9740] },
+    "rating": 4.5,
+    "timings": "9:00 AM – 1:00 PM, 3:00 – 6:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "COMMERCIAL_STREET",
+    "name": "Commercial Street",
+    "category": "Market",
+    "description": "Bengaluru's busiest shopping lane — fashion, footwear, jewellery and street food since 1905.",
+    "location": { "type": "Point", "coordinates": [77.6040, 12.9784] },
+    "rating": 4.3,
+    "timings": "10:30 AM – 9:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "BRIGADE_ROAD",
+    "name": "Brigade Road",
+    "category": "Market",
+    "description": "Trendy shopping and café strip linking MG Road to Residency Road — the city's classic hangout.",
+    "location": { "type": "Point", "coordinates": [77.6066, 12.9712] },
+    "rating": 4.4,
+    "timings": "11:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "GARUDA_MALL",
+    "name": "Garuda Mall",
+    "category": "Mall",
+    "description": "Five-storey shopping and entertainment mall on Magrath Road with food court and multiplex.",
+    "location": { "type": "Point", "coordinates": [77.6077, 12.9690] },
+    "rating": 4.2,
+    "timings": "11:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "ULSOOR_LAKE",
+    "name": "Ulsoor Lake",
+    "category": "Lake",
+    "description": "Sprawling Halasuru lake with boating, a promenade and views of the skyline at sunset.",
+    "location": { "type": "Point", "coordinates": [77.6205, 12.9812] },
+    "rating": 4.3,
+    "timings": "6:00 AM – 6:00 PM",
+    "entry": "Free · boating ticketed"
+  },
+  {
+    "_id": "HUNDRED_FEET_ROAD",
+    "name": "100 Feet Road, Indiranagar",
+    "category": "Food & Nightlife",
+    "description": "Indiranagar's famous café-and-craft-brewery strip — the city's food and nightlife capital.",
+    "location": { "type": "Point", "coordinates": [77.6410, 12.9708] },
+    "rating": 4.5,
+    "timings": "All day · lively after 7 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "BAGMANE_TECH_PARK",
+    "name": "Bagmane Tech Park",
+    "category": "Tech Park",
+    "description": "Sprawling lakeside IT campus in CV Raman Nagar that anchors east Bengaluru's tech corridor.",
+    "location": { "type": "Point", "coordinates": [77.6520, 12.9862] },
+    "rating": 4.3,
+    "timings": "9:00 AM – 8:00 PM",
+    "entry": "Employee/visitor pass"
+  },
+  {
+    "_id": "PHOENIX_MARKETCITY",
+    "name": "Phoenix Marketcity",
+    "category": "Mall",
+    "description": "One of Bengaluru's largest malls — 300+ stores, PVR, bowling and a buzzing courtyard nightlife.",
+    "location": { "type": "Point", "coordinates": [77.6908, 12.9956] },
+    "rating": 4.4,
+    "timings": "11:00 AM – 11:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "SAI_BABA_TEMPLE_WHITEFIELD",
+    "name": "Sri Sathya Sai Baba Temple, Whitefield",
+    "category": "Temple",
+    "description": "Revered Shirdi Sai temple with peaceful evening aarti and free annadanam meals.",
+    "location": { "type": "Point", "coordinates": [77.7220, 12.9955] },
+    "rating": 4.7,
+    "timings": "6:00 AM – 8:30 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "FORUM_SHANTINIKETAN",
+    "name": "Forum Shantiniketan Mall",
+    "category": "Mall",
+    "description": "Whitefield shopping and dining landmark with INOX multiplex next to Pattandur Agrahara metro.",
+    "location": { "type": "Point", "coordinates": [77.7303, 12.9966] },
+    "rating": 4.3,
+    "timings": "11:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "ITPL",
+    "name": "International Tech Park Bangalore (ITPL)",
+    "category": "Tech Park",
+    "description": "Iconic ITPL park-and-boulevard in Whitefield — where Bengaluru's IT boom began in the 1990s.",
+    "location": { "type": "Point", "coordinates": [77.7365, 12.9856] },
+    "rating": 4.4,
+    "timings": "9:00 AM – 8:00 PM",
+    "entry": "Employee/visitor pass"
+  },
+  {
+    "_id": "RAJARAJESHWARI_TEMPLE",
+    "name": "Rajarajeshwari Temple",
+    "category": "Temple",
+    "description": "Ancient hilltop temple on Mysore Road dedicated to Goddess Rajarajeshwari, by the Vrishabhavathi.",
+    "location": { "type": "Point", "coordinates": [77.5210, 12.9548] },
+    "rating": 4.7,
+    "timings": "7:00 AM – 8:30 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "GLOBAL_VILLAGE_TECH_PARK",
+    "name": "Global Village Tech Park",
+    "category": "Tech Park",
+    "description": "Major IT campus off Mysore Road hosting Accenture, Mindtree and other global firms.",
+    "location": { "type": "Point", "coordinates": [77.5403, 12.9549] },
+    "rating": 4.3,
+    "timings": "9:00 AM – 7:00 PM",
+    "entry": "Employee/visitor pass"
+  },
+  {
+    "_id": "FREEDOM_PARK",
+    "name": "Freedom Park",
+    "category": "Park",
+    "description": "Former central jail turned 20-acre park with glass-walled jail museum, amphitheatre and protests' ground.",
+    "location": { "type": "Point", "coordinates": [77.5794, 12.9792] },
+    "rating": 4.3,
+    "timings": "5:00 AM – 8:00 AM, 4:00 – 8:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "CHICKPETE_MARKET",
+    "name": "Chickpete Shopping Streets",
+    "category": "Market",
+    "description": "400-year-old wholesale bazaar lanes — silks, saris and electronics at bargain prices.",
+    "location": { "type": "Point", "coordinates": [77.5755, 12.9725] },
+    "rating": 4.2,
+    "timings": "11:00 AM – 9:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "KR_MARKET",
+    "name": "Krishna Rajendra (City) Market",
+    "category": "Market",
+    "description": "Iconic flower-and-produce bazaar — best seen at dawn when jasmine garlands fill the halls.",
+    "location": { "type": "Point", "coordinates": [77.5769, 12.9634] },
+    "rating": 4.3,
+    "timings": "5:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "BANGALORE_FORT",
+    "name": "Bangalore Fort (Kempegowda Fort)",
+    "category": "Monument",
+    "description": "Remnants of Kempegowda's 1537 mud fort, later rebuilt in stone by Haider Ali and Tipu Sultan.",
+    "location": { "type": "Point", "coordinates": [77.5754, 12.9648] },
+    "rating": 4.2,
+    "timings": "9:00 AM – 5:30 PM",
+    "entry": "₹25"
+  },
+  {
+    "_id": "TIPU_SULTAN_PALACE",
+    "name": "Tipu Sultan's Summer Palace",
+    "category": "Palace",
+    "description": "Teak-and-stone Indo-Islamic palace near City Market with a small museum on the Tiger of Mysore.",
+    "location": { "type": "Point", "coordinates": [77.5744, 12.9606] },
+    "rating": 4.3,
+    "timings": "8:30 AM – 5:30 PM",
+    "entry": "₹20"
+  },
+  {
+    "_id": "MANTRI_SQUARE_MALL",
+    "name": "Mantri Square Mall",
+    "category": "Mall",
+    "description": "Huge Malleshwaram mall with 250+ brands, food court and PVR — sits right on the metro line.",
+    "location": { "type": "Point", "coordinates": [77.5708, 12.9907] },
+    "rating": 4.3,
+    "timings": "11:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "MALLESHWARAM_8TH_CROSS",
+    "name": "Malleshwaram 8th Cross",
+    "category": "Market",
+    "description": "Heritage market street of flower vendors, old filter-coffee halls and CTR's legendary masala dosa.",
+    "location": { "type": "Point", "coordinates": [77.5713, 12.9950] },
+    "rating": 4.4,
+    "timings": "9:00 AM – 9:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "ORION_MALL",
+    "name": "Orion Mall",
+    "category": "Mall",
+    "description": "Lakeside mall at Brigade Gateway with 100+ brands, food court and waterfront evening views.",
+    "location": { "type": "Point", "coordinates": [77.5550, 12.9959] },
+    "rating": 4.4,
+    "timings": "11:00 AM – 11:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "ISKCON_TEMPLE",
+    "name": "ISKCON Sri Radha Krishna Temple",
+    "category": "Temple",
+    "description": "Majestic hilltop temple on Hare Krishna Hill with gold kalash shikhara and evening aarti.",
+    "location": { "type": "Point", "coordinates": [77.5511, 13.0093] },
+    "rating": 4.7,
+    "timings": "4:30 AM – 9:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "ORION_UPTOWN",
+    "name": "Orion Uptown Mall",
+    "category": "Mall",
+    "description": "Open-air neighbourhood mall near Jalahalli with fountains, eateries and weekend events.",
+    "location": { "type": "Point", "coordinates": [77.5220, 13.0450] },
+    "rating": 4.3,
+    "timings": "11:00 AM – 10:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "LALBAGH",
+    "name": "Lalbagh Botanical Garden",
+    "category": "Park",
+    "description": "Bengaluru's crown jewel — 240 acres, the 18th-century Glass House and the famous flower shows.",
+    "location": { "type": "Point", "coordinates": [77.5790, 12.9500] },
+    "rating": 4.6,
+    "timings": "5:00 AM – 7:00 PM",
+    "entry": "₹30"
+  },
+  {
+    "_id": "BULL_TEMPLE",
+    "name": "Dodda Basavana Gudi (Bull Temple)",
+    "category": "Temple",
+    "description": "16th-century Dravidian temple housing a giant monolithic Nandi bull in Basavanagudi.",
+    "location": { "type": "Point", "coordinates": [77.5732, 12.9422] },
+    "rating": 4.5,
+    "timings": "6:00 AM – 8:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "JAYANAGAR_4TH_BLOCK",
+    "name": "Jayanagar 4th Block Shopping Complex",
+    "category": "Market",
+    "description": "Classic South Bengaluru shopping block — sweets, silks, keen beans of street food and shopping.",
+    "location": { "type": "Point", "coordinates": [77.5827, 12.9293] },
+    "rating": 4.3,
+    "timings": "10:00 AM – 9:30 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "BANASHANKARI_TEMPLE",
+    "name": "Banashankari Amma Temple",
+    "category": "Temple",
+    "description": "Popular temple to Goddess Banashankari on Kanakapura Road, busy through the week.",
+    "location": { "type": "Point", "coordinates": [77.5480, 12.9263] },
+    "rating": 4.6,
+    "timings": "6:00 AM – 8:30 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "TURAHALLI_FOREST",
+    "name": "Turahalli Mini Forest Viewpoint",
+    "category": "Park",
+    "description": "The city's last mini forest — rocky viewpoint sunrise spot loved by cyclists and boulderers.",
+    "location": { "type": "Point", "coordinates": [77.5600, 12.8850] },
+    "rating": 4.4,
+    "timings": "6:00 AM – 6:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "RAGIGUDDA_TEMPLE",
+    "name": "Ragigudda Prasanna Anjaneya Temple",
+    "category": "Temple",
+    "description": "Hilltop Hanuman temple in Jayanagar with a gopuram climb and calm city views.",
+    "location": { "type": "Point", "coordinates": [77.6085, 12.9305] },
+    "rating": 4.6,
+    "timings": "8:00 AM – 8:00 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "MADIWALA_LAKE",
+    "name": "Madiwala Lake",
+    "category": "Lake",
+    "description": "Large BTM lake with pelicans, a walking loop and boating near the Madiwala checkpost.",
+    "location": { "type": "Point", "coordinates": [77.6180, 12.9225] },
+    "rating": 4.3,
+    "timings": "6:00 AM – 6:30 PM",
+    "entry": "Free"
+  },
+  {
+    "_id": "E_CITY_TECH_PARK",
+    "name": "Electronic City Tech Park Hub",
+    "category": "Tech Park",
+    "description": "India's iconic IT township — Infosys, Wipro and TCS campuses spread across three phases.",
+    "location": { "type": "Point", "coordinates": [77.6608, 12.8452] },
+    "rating": 4.2,
+    "timings": "9:00 AM – 8:00 PM",
+    "entry": "Employee/visitor pass"
+  },
+  {
+    "_id": "BIOCON_PARK",
+    "name": "Biocon Park, Hebbagodi",
+    "category": "Tech Park",
+    "description": "Biotech giant Biocon's flagship campus anchoring the Anekal-side life-sciences corridor.",
+    "location": { "type": "Point", "coordinates": [77.6587, 12.8323] },
+    "rating": 4.3,
+    "timings": "9:00 AM – 7:00 PM",
+    "entry": "Employee/visitor pass"
+  }
+]

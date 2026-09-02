@@ -64,6 +64,25 @@ function createStationIcon(line, isInterchange) {
 // ── Station Stats Cache ──
 const stationStatsCache = {};
 
+// ── Hotspots Cache & Category Icons ──
+const stationHotspotsCache = {};
+const HOTSPOT_ICONS = {
+  'Park': '🌳',
+  'Monument': '🗿',
+  'Museum': '🏛️',
+  'Art Gallery': '🖼️',
+  'Stadium': '🏟️',
+  'Church': '⛪',
+  'Market': '🛍️',
+  'Mall': '🏬',
+  'Lake': '🌊',
+  'Food & Nightlife': '🍽️',
+  'Tech Park': '💼',
+  'Temple': '🛕',
+  'Palace': '🏰',
+  'Landmark': '📍'
+};
+
 // ── Format Number ──
 function formatNumber(n) {
   if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
@@ -114,6 +133,15 @@ function createPopupElement(station, data = null) {
         <div class="popup-chart-title">Hourly Ridership Pattern</div>
         <div class="popup-chart-wrapper">
           <canvas class="popup-chart"></canvas>
+        </div>
+      </div>
+      <div class="popup-hotspots">
+        <div class="popup-chart-title">📍 Nearby Hotspots</div>
+        <div class="hotspot-list">
+          <div class="hotspot-loading">
+            <div class="spinner"></div>
+            <div>Finding places near ${station.name}...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -191,10 +219,16 @@ async function handleMarkerOpen(station, marker) {
   const popup = marker.getPopup();
   if (!popup) return;
 
+  // Renders the full popup (stats + chart) and kicks off the hotspots fetch
+  const renderFull = (data) => {
+    popup.setContent(createPopupElement(station, data));
+    popup.update();
+    loadStationHotspots(station, marker);
+  };
+
   // If already cached, render immediately
   if (stationStatsCache[station._id]) {
-    popup.setContent(createPopupElement(station, stationStatsCache[station._id]));
-    popup.update();
+    renderFull(stationStatsCache[station._id]);
     return;
   }
 
@@ -209,8 +243,7 @@ async function handleMarkerOpen(station, marker) {
 
     // Update with loaded data if popup is still open
     if (marker.isPopupOpen()) {
-      popup.setContent(createPopupElement(station, data));
-      popup.update();
+      renderFull(data);
     }
   } catch (err) {
     console.error('Failed to load station stats:', err);
@@ -226,6 +259,104 @@ async function handleMarkerOpen(station, marker) {
       popup.update();
     }
   }
+}
+
+// ── Nearby Hotspots (per station) ──
+const HOTSPOT_PREVIEW_COUNT = 3; // visible before expanding
+
+async function loadStationHotspots(station, marker) {
+  const popup = marker.getPopup();
+  if (!popup) return;
+  const content = popup.getContent();
+  const listEl = (content && typeof content.querySelector === 'function')
+    ? content.querySelector('.hotspot-list')
+    : null;
+  if (!listEl) return;
+
+  // Already cached → render immediately
+  if (stationHotspotsCache[station._id]) {
+    renderHotspotList(listEl, stationHotspotsCache[station._id]);
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/stations/${station._id}/hotspots?limit=6&radius=3000`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    stationHotspotsCache[station._id] = payload;
+    renderHotspotList(listEl, payload);
+  } catch (err) {
+    console.error('Failed to load hotspots:', err);
+    listEl.innerHTML = '<div class="hotspot-empty">⚠️ Couldn\'t load nearby places</div>';
+  }
+}
+
+function formatDistance(meters) {
+  if (meters < 1000) return `${meters} m`;
+  return `${(meters / 1000).toFixed(1)} km`;
+}
+
+// Inline onclick handler — fires directly on the button (target phase),
+// so it can't be swallowed by popup re-renders or event bubbling issues.
+window.__toggleHotspots = function (btn, e) {
+  if (e && e.stopPropagation) e.stopPropagation(); // don't let Leaflet treat it as a map click
+  const section = btn.closest('.popup-hotspots');
+  const list = section && section.querySelector('.hotspot-list');
+  if (!list) return;
+  const showAll = !list.classList.contains('expanded');
+  list.classList.toggle('expanded', showAll);
+  btn.textContent = showAll
+    ? 'Show less ▴'
+    : `View all ${list.querySelectorAll('.hotspot-item').length} places ▾`;
+  const openMarker = Object.values(stationMarkers || {}).find(m => m.isPopupOpen && m.isPopupOpen());
+  if (openMarker) {
+    const p = openMarker.getPopup();
+    if (p) p.update(); // re-fit popup after expand/collapse
+  }
+};
+
+function renderHotspotList(listEl, payload) {
+  const hotspots = (payload && payload.hotspots) || [];
+  const section = listEl.closest('.popup-hotspots');
+
+  // Drop any previous toggle / note — re-added below the list
+  if (section) {
+    section.querySelectorAll('.hotspot-toggle, .hotspot-note').forEach(n => n.remove());
+  }
+
+  if (!hotspots.length) {
+    listEl.innerHTML = '<div class="hotspot-empty">No hotspots found nearby.</div>';
+    listEl.classList.remove('expanded');
+    return;
+  }
+
+  // Render ALL rows upfront; CSS hides those beyond the preview count.
+  // Toggling then only flips one class — no re-render, no listener rebinding.
+  const rows = hotspots.map((h, i) => `
+    <div class="hotspot-item${i >= HOTSPOT_PREVIEW_COUNT ? ' hotspot-extra' : ''}" title="${(h.description || '').replace(/"/g, '&quot;')}">
+      <span class="hotspot-icon">${HOTSPOT_ICONS[h.category] || '📍'}</span>
+      <div class="hotspot-info">
+        <div class="hotspot-name">${h.name}</div>
+        <div class="hotspot-meta">${h.category} · ★ ${h.rating != null ? h.rating.toFixed(1) : '—'} · 🚶 ${h.walk_minutes} min</div>
+      </div>
+      <span class="hotspot-distance">${formatDistance(h.distance_meters)}</span>
+    </div>
+  `).join('');
+  listEl.innerHTML = rows;
+  listEl.classList.remove('expanded'); // start collapsed
+
+  let toggle = '';
+  if (hotspots.length > HOTSPOT_PREVIEW_COUNT) {
+    toggle = `<button class="hotspot-toggle" type="button" onclick="__toggleHotspots(this, event)">View all ${hotspots.length} places ▾</button>`;
+  }
+
+  // Station was outside the hotspot radius → nearest city-wide places shown
+  const note = payload.fallback
+    ? '<div class="hotspot-note">Closest known places — beyond walking distance from this station</div>'
+    : '';
+
+  // Insert AFTER the scrollable list so the button is never clipped
+  if (section) listEl.insertAdjacentHTML('afterend', toggle + note);
 }
 
 // ── Draw Metro Lines ──

@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
   <div class="app-container">
@@ -109,6 +109,35 @@
             <div class="route-stat">
               <div class="route-stat-value" id="route-avg-passengers">0</div>
               <div class="route-stat-label">Avg passengers / day</div>
+            </div>
+          </div>
+
+          <!-- ── Journey Details (path, fare, distance, line changes) ── -->
+          <div class="card journey-card" id="journey-card">
+            <div class="card-header">
+              <span class="card-title">🧭 Journey Details</span>
+              <span class="card-badge" id="journey-lines-badge">—</span>
+            </div>
+
+            <div class="journey-chips" id="journey-chips">
+              <div class="jchip"><span class="jchip-icon">🚏</span><span class="jchip-value" id="jc-stops">—</span><span class="jchip-label">Stops</span></div>
+              <div class="jchip"><span class="jchip-icon">📏</span><span class="jchip-value" id="jc-distance">—</span><span class="jchip-label">Distance</span></div>
+              <div class="jchip"><span class="jchip-icon">⏱️</span><span class="jchip-value" id="jc-duration">—</span><span class="jchip-label">Est. time</span></div>
+              <div class="jchip"><span class="jchip-icon">🎫</span><span class="jchip-value" id="jc-fare">—</span><span class="jchip-label">Fare · <span id="jc-fare-slab">—</span></span></div>
+              <div class="jchip"><span class="jchip-icon">🔁</span><span class="jchip-value" id="jc-changes">—</span><span class="jchip-label">Line changes</span></div>
+              <div class="jchip"><span class="jchip-icon">🪙</span><span class="jchip-value" id="jc-roundtrip">—</span><span class="jchip-label">Round trip</span></div>
+            </div>
+
+            <div class="journey-transfer-note" id="journey-transfer-note" style="display:none;"></div>
+
+            <div class="journey-timing" id="journey-timing"></div>
+
+            <div class="journey-timeline" id="journey-timeline">
+              <div class="journey-empty">Select origin &amp; destination and search to see the stop-by-stop journey.</div>
+            </div>
+
+            <div class="journey-footnote">
+              Fare &amp; timing are indicative estimates for demonstration purposes (synthetic dataset).
             </div>
           </div>
 
@@ -269,7 +298,7 @@
   </div>
 
   <!-- App Scripts -->
-  <script src="map.js"></script>
+  <script src="map.js?v=3"></script>
   <script src="dashboard.js"></script>
 </body>
 </html>
