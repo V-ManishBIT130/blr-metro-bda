@@ -11,6 +11,7 @@ This project demonstrates MongoDB's capabilities for storing, querying, and aggr
 - **Interactive Leaflet.js map** with station markers, line polylines, and on-click stats
 - **Route search** showing historical trip volume between any two stations
 - **Analytics dashboard** with top stations, peak hours, and busiest routes
+- **Network Pulse** — an at-a-glance demand readout: strongest hour, commute-shaped demand, origin concentration, and the leading line
 - **Geospatial search** using MongoDB's `$geoNear` and 2dsphere index
 
 ## 🛠️ Tech Stack
@@ -88,6 +89,10 @@ blr-metro-bda/
 | **$group by $hour** | Peak hours analysis from timestamps |
 | **$dateToString** | Daily breakdown aggregations |
 | **Volume** | ~1M+ trip documents |
+
+## 💡 Network Pulse methodology
+
+The dashboard converts the existing aggregation output into four planning-oriented signals. It reports the busiest hour, the share of passenger demand occurring in the morning/evening commute windows (07:00–10:00 and 17:00–20:00), the share of demand originating at the ten busiest stations, and the line with the largest passenger share. These are derived from the same 90-day synthetic dataset displayed in the charts—no live ridership claim is implied.
 
 ## 🔌 API Endpoints
 

@@ -34,9 +34,16 @@ router.get('/', async (req, res) => {
 router.get('/nearby', async (req, res) => {
   try {
     const { lat, lng, limit = 5 } = req.query;
-    if (!lat || !lng) {
+    if (lat === undefined || lng === undefined) {
       return res.status(400).json({ error: 'lat and lng query params are required' });
     }
+
+    const latitude = Number(lat);
+    const longitude = Number(lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
+      return res.status(400).json({ error: 'lat and lng must be valid geographic coordinates' });
+    }
+    const resultLimit = Math.min(Math.max(Number.parseInt(limit, 10) || 5, 1), 20);
 
     const db = getDB();
     const results = await db.collection('stations').aggregate([
@@ -44,14 +51,14 @@ router.get('/nearby', async (req, res) => {
         $geoNear: {
           near: {
             type: 'Point',
-            coordinates: [parseFloat(lng), parseFloat(lat)]
+            coordinates: [longitude, latitude]
           },
           distanceField: 'distance_meters',
           spherical: true,
           maxDistance: 50000 // 50km max
         }
       },
-      { $limit: parseInt(limit) }
+      { $limit: resultLimit }
     ]).toArray();
 
     res.json(results);

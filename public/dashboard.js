@@ -56,6 +56,11 @@ async function loadDashboard() {
     document.getElementById('stat-trips').textContent = formatNumber(lineTripTotal);
     document.getElementById('stat-passengers').textContent = formatNumber(lineTotal);
 
+    // ── Network Pulse ──
+    // This translates the dashboard's raw aggregates into a quick planning read:
+    // when demand is strongest, how commute-led it is, and where it concentrates.
+    renderNetworkPulse({ topStations, peakHours, lineStats, topRoutes, totalPassengers: lineTotal });
+
     // ── Top Stations Bar Chart ──
     renderTopStationsChart(topStations);
 
@@ -75,6 +80,38 @@ async function loadDashboard() {
   } finally {
     setDashboardLoading(false);
   }
+}
+
+function renderNetworkPulse({ topStations, peakHours, lineStats, topRoutes, totalPassengers }) {
+  const peak = peakHours.reduce((highest, item) =>
+    !highest || item.passengers > highest.passengers ? item : highest, null);
+  const commutePassengers = peakHours
+    .filter(({ hour }) => (hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20))
+    .reduce((sum, item) => sum + item.passengers, 0);
+  const topStationPassengers = topStations.reduce((sum, item) => sum + item.total_passengers, 0);
+  const leadingLine = [...lineStats].sort((a, b) => b.passengers - a.passengers)[0];
+  const leadingRoute = topRoutes[0];
+  const pct = (value, total) => total ? Math.round((value / total) * 100) : 0;
+  const hourLabel = peak ? `${String(peak.hour).padStart(2, '0')}:00–${String(peak.hour + 1).padStart(2, '0')}:00` : '—';
+  const peakDailyAverage = peak ? Math.round(peak.passengers / 90) : 0;
+
+  document.getElementById('pulse-peak-hour').textContent = hourLabel;
+  document.getElementById('pulse-peak-detail').textContent = peak
+    ? `${formatNumber(peakDailyAverage)} average passengers / day`
+    : 'No hourly data available';
+  document.getElementById('pulse-commute-share').textContent = `${pct(commutePassengers, totalPassengers)}%`;
+  document.getElementById('pulse-concentration').textContent = `${pct(topStationPassengers, totalPassengers)}%`;
+  document.getElementById('pulse-leading-line').textContent = leadingLine ? `${leadingLine.line} Line` : '—';
+  document.getElementById('pulse-leading-detail').textContent = leadingLine
+    ? `${pct(leadingLine.passengers, totalPassengers)}% of all passengers`
+    : 'No line data available';
+
+  const routeText = leadingRoute
+    ? `${leadingRoute.from_name} → ${leadingRoute.to_name} is the highest-volume OD pair.`
+    : 'Route demand is being calculated.';
+  document.getElementById('pulse-summary').textContent = peak && leadingLine
+    ? `${leadingLine.line} carries the most demand, with the strongest network pulse at ${hourLabel}. ${routeText}`
+    : routeText;
 }
 
 function setDashboardLoading(isLoading) {
@@ -358,6 +395,7 @@ document.getElementById('route-search-form').addEventListener('submit', async (e
       fetch(`/api/routes?from=${from}&to=${to}`),
       fetch(`/api/routes/journey?from=${from}&to=${to}`)
     ]);
+    if (!volumeRes.ok) throw new Error(`Route volume request failed: ${volumeRes.status}`);
     const data = await volumeRes.json();
     let journey = null;
     try { journey = await journeyRes.json(); } catch (_) { journey = null; }
@@ -392,6 +430,13 @@ document.getElementById('route-search-form').addEventListener('submit', async (e
     btn.textContent = 'Search Route';
     btn.disabled = false;
   }
+});
+
+document.getElementById('btn-swap-route').addEventListener('click', () => {
+  const from = document.getElementById('from-station');
+  const to = document.getElementById('to-station');
+  [from.value, to.value] = [to.value, from.value];
+  from.focus();
 });
 
 // ── Render Journey Details (path, segments, fare, interchanges) ──
@@ -606,12 +651,20 @@ document.getElementById('btn-use-location').addEventListener('click', () => {
 });
 
 async function searchNearby(lat, lng) {
+  const container = document.getElementById('nearby-results');
+  container.setAttribute('aria-busy', 'true');
+  container.innerHTML = '<div class="nearby-message">Finding nearby stations…</div>';
   try {
     const res = await fetch(`/api/stations/nearby?lat=${lat}&lng=${lng}&limit=10`);
+    if (!res.ok) throw new Error(`Nearby search failed: ${res.status}`);
     const data = await res.json();
 
-    const container = document.getElementById('nearby-results');
     const lc = { Purple: '#a855f7', Green: '#22c55e', Yellow: '#eab308' };
+
+    if (!data.length) {
+      container.innerHTML = '<div class="nearby-message">No stations found within 50 km of these coordinates.</div>';
+      return;
+    }
 
     container.innerHTML = data.map((s, i) => {
       const distKm = (s.distance_meters / 1000).toFixed(2);
@@ -635,6 +688,9 @@ async function searchNearby(lat, lng) {
 
   } catch (err) {
     console.error('Nearby search failed:', err);
+    container.innerHTML = '<div class="nearby-message error">We could not find nearby stations. Check the coordinates and try again.</div>';
+  } finally {
+    container.setAttribute('aria-busy', 'false');
   }
 }
 

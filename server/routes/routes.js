@@ -110,7 +110,12 @@ router.get('/', async (req, res) => {
     ]);
 
     const total = totalArr[0] || { total_passengers: 0, total_trips: 0 };
-    const daysWithData = Math.max(daily.length, 1);
+    // The total includes both directions, so divide by the union of dates rather
+    // than only the forward dates. This keeps the average comparable for sparse OD pairs.
+    const daysWithData = Math.max(new Set([
+      ...daily.map(item => item._id),
+      ...reverseDaily.map(item => item._id)
+    ]).size, 1);
     const avgPassengersPerDay = Math.round(total.total_passengers / daysWithData);
 
     res.json({

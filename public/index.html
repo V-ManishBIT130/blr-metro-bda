@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
   <div class="app-container">
@@ -94,6 +94,7 @@
               <option value="">Select destination...</option>
             </select>
           </div>
+          <button type="button" class="btn-swap" id="btn-swap-route" aria-label="Swap origin and destination" title="Swap origin and destination">⇄</button>
           <button type="submit" class="btn-search" id="btn-search-route">Search Route</button>
         </form>
 
@@ -206,6 +207,44 @@
           </div>
         </div>
 
+        <!-- ── Network Pulse: derived, decision-ready analysis ── -->
+        <section class="network-pulse" aria-labelledby="network-pulse-title">
+          <div class="pulse-heading">
+            <div>
+              <span class="eyebrow">Derived from the 90-day dataset</span>
+              <h2 id="network-pulse-title">Network Pulse</h2>
+            </div>
+            <span class="pulse-status"><span class="pulse-dot"></span> Synthetic data · analysis ready</span>
+          </div>
+          <p class="pulse-summary" id="pulse-summary">Loading demand signals…</p>
+          <div class="pulse-grid">
+            <article class="pulse-metric">
+              <span class="pulse-icon">⏰</span>
+              <span class="pulse-label">Strongest hour</span>
+              <strong id="pulse-peak-hour">—</strong>
+              <small id="pulse-peak-detail">—</small>
+            </article>
+            <article class="pulse-metric">
+              <span class="pulse-icon">↔</span>
+              <span class="pulse-label">Commute-shaped demand</span>
+              <strong id="pulse-commute-share">—</strong>
+              <small>Passenger demand in 07–10 &amp; 17–20 windows</small>
+            </article>
+            <article class="pulse-metric">
+              <span class="pulse-icon">◎</span>
+              <span class="pulse-label">Origin concentration</span>
+              <strong id="pulse-concentration">—</strong>
+              <small>Demand starting at the top 10 stations</small>
+            </article>
+            <article class="pulse-metric">
+              <span class="pulse-icon">↗</span>
+              <span class="pulse-label">Leading corridor</span>
+              <strong id="pulse-leading-line">—</strong>
+              <small id="pulse-leading-detail">—</small>
+            </article>
+          </div>
+        </section>
+
         <!-- Charts Row 1 -->
         <div class="charts-grid">
           <div class="card analysis-panel" data-analysis="top-stations">
@@ -295,14 +334,14 @@
           <button type="button" class="btn-search" id="btn-use-location" style="background: linear-gradient(135deg, var(--green-line), #059669);">📍 Use My Location</button>
         </form>
 
-        <div class="nearby-results" id="nearby-results"></div>
+        <div class="nearby-results" id="nearby-results" aria-live="polite"></div>
       </section>
 
     </main>
   </div>
 
   <!-- App Scripts -->
-  <script src="map.js?v=3"></script>
-  <script src="dashboard.js"></script>
+  <script src="map.js?v=6"></script>
+  <script src="dashboard.js?v=4"></script>
 </body>
 </html>

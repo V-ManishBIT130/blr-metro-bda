@@ -90,6 +90,11 @@ function formatNumber(n) {
   return (n || 0).toLocaleString();
 }
 
+function getPeakHour(hourlyBreakdown = []) {
+  return hourlyBreakdown.reduce((peak, item) =>
+    !peak || item.passengers > peak.passengers ? item : peak, null);
+}
+
 // ── Create Station Popup Element ──
 function createPopupElement(station, data = null) {
   const container = document.createElement('div');
@@ -98,45 +103,60 @@ function createPopupElement(station, data = null) {
   if (!data) {
     container.innerHTML = `
       <div class="popup-header">
-        <div class="popup-station-name">${station.name}</div>
-        <span class="popup-line-badge ${lineClass}">
-          ● ${station.line} Line${station.is_interchange ? ' · ⇄ Interchange' : ''}
-        </span>
+        <div class="popup-kicker">Station insight</div>
+        <div class="popup-heading-row">
+          <div class="popup-station-name">${station.name}</div>
+          <span class="popup-line-badge ${lineClass}">● ${station.line}</span>
+        </div>
+        <div class="popup-station-meta">Station ${station.sequence}${station.is_interchange ? ' · Interchange' : ''} · 90-day dataset</div>
       </div>
       <div class="popup-loading">
         <div class="spinner"></div>
-        <div>Loading ridership data...</div>
+        <div>Loading station signals…</div>
       </div>
     `;
     return container;
   }
 
+  const peakHour = getPeakHour(data.hourly_breakdown);
+  const peakTime = peakHour ? `${String(peakHour.hour).padStart(2, '0')}:00` : '—';
+  const peakDailyAverage = peakHour ? Math.round(peakHour.passengers / 90) : 0;
+
   container.innerHTML = `
     <div class="popup-header">
-      <div class="popup-station-name">${station.name}</div>
-      <span class="popup-line-badge ${lineClass}">
-        ● ${station.line} Line${station.is_interchange ? ' · ⇄ Interchange' : ''}
-      </span>
+      <div class="popup-kicker">Station insight</div>
+      <div class="popup-heading-row">
+        <div class="popup-station-name">${station.name}</div>
+        <span class="popup-line-badge ${lineClass}">● ${station.line}</span>
+      </div>
+      <div class="popup-station-meta">Station ${station.sequence}${station.is_interchange ? ' · Interchange' : ''} · 90-day dataset</div>
     </div>
-    <div>
+    <div class="popup-body">
       <div class="popup-stats">
         <div class="popup-stat">
-          <div class="popup-stat-value">${formatNumber(data.total_passengers)}</div>
           <div class="popup-stat-label">Total Passengers</div>
+          <div class="popup-stat-value">${formatNumber(data.total_passengers)}</div>
+          <div class="popup-stat-detail">Entries + exits</div>
         </div>
         <div class="popup-stat">
-          <div class="popup-stat-value">${formatNumber(data.total_trips)}</div>
           <div class="popup-stat-label">Total Trips</div>
+          <div class="popup-stat-value">${formatNumber(data.total_trips)}</div>
+          <div class="popup-stat-detail">Recorded journeys</div>
         </div>
       </div>
+      <div class="popup-demand-callout">
+        <span class="popup-demand-icon">↗</span>
+        <div><span>Peak movement</span><strong>${peakTime}</strong></div>
+        <small>${formatNumber(peakDailyAverage)} avg. passengers / day</small>
+      </div>
       <div class="popup-chart-container">
-        <div class="popup-chart-title">Hourly Ridership Pattern</div>
+        <div class="popup-section-heading"><span>Ridership by hour</span><span>${peakTime} peak</span></div>
         <div class="popup-chart-wrapper">
           <canvas class="popup-chart"></canvas>
         </div>
       </div>
       <div class="popup-hotspots">
-        <div class="popup-chart-title">📍 Nearby Hotspots</div>
+        <div class="popup-section-heading"><span>Nearby hotspots</span><span class="hotspot-radius">Within 3 km</span></div>
         <div class="hotspot-list">
           <div class="hotspot-loading">
             <div class="spinner"></div>
@@ -162,7 +182,7 @@ function createPopupElement(station, data = null) {
           labels: Array.from({ length: 24 }, (_, i) => `${i}:00`),
           datasets: [{
             data: hourlyData,
-            backgroundColor: color + '90',
+              backgroundColor: color + 'a8',
             borderColor: color,
             borderWidth: 1,
             borderRadius: 2,
@@ -183,8 +203,8 @@ function createPopupElement(station, data = null) {
               borderWidth: 1,
               cornerRadius: 6,
               padding: 8,
-              titleFont: { size: 10 },
-              bodyFont: { size: 10 },
+            titleFont: { size: 11 },
+            bodyFont: { size: 11 },
               callbacks: {
                 label: (ctx) => `${formatNumber(ctx.raw)} passengers`
               }
@@ -195,7 +215,7 @@ function createPopupElement(station, data = null) {
               display: true,
               ticks: {
                 color: '#64748b',
-                font: { size: 8 },
+                font: { size: 9, weight: '600' },
                 maxRotation: 0,
                 callback: (val, idx) => idx % 4 === 0 ? `${idx}h` : ''
               },
@@ -306,8 +326,8 @@ window.__toggleHotspots = function (btn, e) {
   const showAll = !list.classList.contains('expanded');
   list.classList.toggle('expanded', showAll);
   btn.textContent = showAll
-    ? 'Show less ▴'
-    : `View all ${list.querySelectorAll('.hotspot-item').length} places ▾`;
+    ? 'Show fewer places'
+    : `Show ${Math.max(0, list.querySelectorAll('.hotspot-item').length - HOTSPOT_PREVIEW_COUNT)} more places`;
   const openMarker = Object.values(stationMarkers || {}).find(m => m.isPopupOpen && m.isPopupOpen());
   if (openMarker) {
     const p = openMarker.getPopup();
@@ -318,6 +338,8 @@ window.__toggleHotspots = function (btn, e) {
 function renderHotspotList(listEl, payload) {
   const hotspots = (payload && payload.hotspots) || [];
   const section = listEl.closest('.popup-hotspots');
+  const radiusLabel = section && section.querySelector('.hotspot-radius');
+  if (radiusLabel) radiusLabel.textContent = payload?.fallback ? 'Closest available' : 'Within 3 km';
 
   // Drop any previous toggle / note — re-added below the list
   if (section) {
@@ -333,7 +355,7 @@ function renderHotspotList(listEl, payload) {
   // Render ALL rows upfront; CSS hides those beyond the preview count.
   // Toggling then only flips one class — no re-render, no listener rebinding.
   const rows = hotspots.map((h, i) => `
-    <div class="hotspot-item${i >= HOTSPOT_PREVIEW_COUNT ? ' hotspot-extra' : ''}" title="${(h.description || '').replace(/"/g, '&quot;')}">
+    <div class="hotspot-item${i === 0 ? ' hotspot-primary' : ''}${i >= HOTSPOT_PREVIEW_COUNT ? ' hotspot-extra' : ''}" title="${(h.description || '').replace(/"/g, '&quot;')}">
       <span class="hotspot-icon">${HOTSPOT_ICONS[h.category] || '📍'}</span>
       <div class="hotspot-info">
         <div class="hotspot-name">${h.name}</div>
@@ -347,12 +369,12 @@ function renderHotspotList(listEl, payload) {
 
   let toggle = '';
   if (hotspots.length > HOTSPOT_PREVIEW_COUNT) {
-    toggle = `<button class="hotspot-toggle" type="button" onclick="__toggleHotspots(this, event)">View all ${hotspots.length} places ▾</button>`;
+    toggle = `<button class="hotspot-toggle" type="button" onclick="__toggleHotspots(this, event)">Show ${hotspots.length - HOTSPOT_PREVIEW_COUNT} more places</button>`;
   }
 
   // Station was outside the hotspot radius → nearest city-wide places shown
   const note = payload.fallback
-    ? '<div class="hotspot-note">Closest known places — beyond walking distance from this station</div>'
+    ? '<div class="hotspot-note">Closest known places — beyond the preferred walking radius</div>'
     : '';
 
   // Insert AFTER the scrollable list so the button is never clipped
@@ -408,12 +430,15 @@ function plotStations(stations) {
     // Bind popup with clean initial content
     const popup = L.popup({
       className: 'station-popup',
-      maxWidth: 340,
-      minWidth: 290,
-      offset: [0, -8],
+      maxWidth: 380,
+      minWidth: 330,
+      offset: [0, -12],
       closeButton: true,
       autoPan: true,
-      autoPanPadding: [30, 30]
+      // Reserve more space above the popup so it never disappears beneath the fixed app header.
+      autoPanPadding: [44, 44],
+      autoPanPaddingTopLeft: [44, 150],
+      autoPanPaddingBottomRight: [44, 44]
     }).setContent(createPopupElement(station, null));
 
     marker.bindPopup(popup);
