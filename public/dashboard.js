@@ -337,8 +337,13 @@ document.getElementById('route-search-form').addEventListener('submit', async (e
   btn.disabled = true;
 
   try {
-    const res = await fetch(`/api/routes?from=${from}&to=${to}`);
-    const data = await res.json();
+    const [volumeRes, journeyRes] = await Promise.all([
+      fetch(`/api/routes?from=${from}&to=${to}`),
+      fetch(`/api/routes/journey?from=${from}&to=${to}`)
+    ]);
+    const data = await volumeRes.json();
+    let journey = null;
+    try { journey = await journeyRes.json(); } catch (_) { journey = null; }
 
     // Show results
     const resultsEl = document.getElementById('route-results');
@@ -354,6 +359,9 @@ document.getElementById('route-search-form').addEventListener('submit', async (e
     document.getElementById('route-total-trips').textContent = formatNumber(data.total_trips);
     document.getElementById('route-total-passengers').textContent = formatNumber(data.total_passengers);
 
+    // ── Journey Details (stops, fare, distance, line changes) ──
+    renderJourney(journey);
+
     // ── Forward Chart ──
     renderRouteChart('route-forward-chart', data.forward_daily, '#6366f1', 'routeForward');
 
@@ -368,6 +376,118 @@ document.getElementById('route-search-form').addEventListener('submit', async (e
     btn.disabled = false;
   }
 });
+
+// ── Render Journey Details (path, segments, fare, interchanges) ──
+function renderJourney(j) {
+  const timeline = document.getElementById('journey-timeline');
+  const note = document.getElementById('journey-transfer-note');
+  const timing = document.getElementById('journey-timing');
+  const linesBadge = document.getElementById('journey-lines-badge');
+  const lc = window.LINE_COLORS || { Purple: '#a855f7', Green: '#22c55e', Yellow: '#eab308' };
+  const lineBadge = (l) => {
+    const c = lc[l] || '#6366f1';
+    return `<span class="jline-badge" style="color:${c};border-color:${c}66;background:${c}1a;">● ${l}</span>`;
+  };
+
+  // Reset everything on error / missing data
+  if (!j || j.error) {
+    document.getElementById('jc-stops').textContent = '—';
+    document.getElementById('jc-distance').textContent = '—';
+    document.getElementById('jc-duration').textContent = '—';
+    document.getElementById('jc-fare').textContent = '—';
+    document.getElementById('jc-fare-slab').textContent = '—';
+    document.getElementById('jc-changes').textContent = '—';
+    document.getElementById('jc-roundtrip').textContent = '—';
+    linesBadge.textContent = '—';
+    note.style.display = 'none';
+    timing.textContent = '';
+    timeline.innerHTML = `<div class="journey-empty">⚠️ ${j?.error || 'Journey details unavailable.'}</div>`;
+    return;
+  }
+
+  // ── Stat chips ──
+  document.getElementById('jc-stops').textContent = j.stops;
+  document.getElementById('jc-distance').textContent = j.total_distance_km + ' km';
+  document.getElementById('jc-duration').textContent = '~' + j.duration_min + ' min';
+  document.getElementById('jc-fare').textContent = '₹' + j.fare.single;
+  document.getElementById('jc-fare-slab').textContent = j.fare.slab_label;
+  document.getElementById('jc-changes').textContent = j.interchanges.length;
+  document.getElementById('jc-roundtrip').textContent = '₹' + j.fare.round_trip;
+
+  // ── Lines used badge ──
+  linesBadge.innerHTML = j.lines_used.map(lineBadge).join(' ');
+
+  // ── Line-change notice ──
+  if (j.interchanges.length) {
+    note.style.display = 'block';
+    note.innerHTML = j.interchanges.map(x => `
+      <span class="jtransfer-item">
+        🔁 At <strong>${x.station}</strong> — change
+        <b style="color:${lc[x.from_line] || '#6366f1'}">${x.from_line}</b> →
+        <b style="color:${lc[x.to_line] || '#6366f1'}">${x.to_line}</b>
+      </span>
+    `).join('');
+  } else {
+    note.style.display = 'none';
+    note.innerHTML = '';
+  }
+
+  // ── Indicative timings ──
+  timing.textContent = `🚈 First train ${j.timing.first_train} · Last train ${j.timing.last_train} · Trains every ~${j.timing.frequency_min} min`;
+
+  // ── Stop-by-stop timeline, grouped per line segment ──
+  let html = '';
+  let pi = 0; // current index in j.path (adjacent segments share boundary node)
+  j.segments.forEach((seg, si) => {
+    const color = lc[seg.line] || '#6366f1';
+    html += `
+      <div class="jseg-header" style="border-color:${color}55;">
+        <span class="jseg-dot" style="background:${color};box-shadow:0 0 8px ${color}88;"></span>
+        <span class="jseg-line" style="color:${color};">${seg.line} Line</span>
+        <span class="jseg-meta">towards ${seg.towards} · ${seg.stops} stop${seg.stops > 1 ? 's' : ''} · ${seg.distance_km} km</span>
+      </div>
+      <div class="jseg-stops">`;
+
+    const startK = si === 0 ? 0 : 1; // boundary node already rendered by previous segment
+    for (let k = startK; k <= seg.stops; k++) {
+      const node = j.path[pi + k];
+      const globalIdx = pi + k;
+      const isLastOfSeg = k === seg.stops;
+      const isDestination = globalIdx === j.path.length - 1;
+      const isTransfer = isLastOfSeg && node.transfer_to && !isDestination;
+
+      let iconHtml;
+      let tagHtml = '';
+      if (globalIdx === 0) {
+        iconHtml = `<span class="jstop-dot origin" style="background:${color};">🚩</span>`;
+        tagHtml = `<span class="jstop-tag">Board here</span> ${node.lines && node.lines.length > 1 ? node.lines.map(lineBadge).join(' ') : lineBadge(seg.line)}`;
+      } else if (isDestination) {
+        iconHtml = `<span class="jstop-dot destination" style="background:${color};">🏁</span>`;
+        tagHtml = `<span class="jstop-tag destination">Destination</span>`;
+      } else if (isTransfer) {
+        const tc = lc[node.transfer_to] || '#6366f1';
+        iconHtml = `<span class="jstop-dot transfer">⇄</span>`;
+        tagHtml = `<span class="jstop-tag transfer">Change to <b style="color:${tc};">${node.transfer_to} Line</b></span>`;
+      } else {
+        iconHtml = `<span class="jstop-dot" style="background:${color};"></span>`;
+        if (node.is_interchange) tagHtml = `<span class="jstop-tag">⇄ Interchange available</span>`;
+      }
+
+      html += `
+        <div class="jstop${isDestination ? ' destination' : ''}${isTransfer ? ' transfer' : ''}">
+          <div class="jstop-rail">${iconHtml}<span class="jstop-connector" style="background:linear-gradient(${color}55, ${color}22);"></span></div>
+          <div class="jstop-body">
+            <span class="jstop-name">${node.name}</span>
+            ${tagHtml}
+          </div>
+        </div>`;
+    }
+    html += `</div>`;
+    pi += seg.stops; // next segment starts at this boundary node
+  });
+
+  timeline.innerHTML = html;
+}
 
 function renderRouteChart(canvasId, dailyData, color, chartKey) {
   const ctx = document.getElementById(canvasId);

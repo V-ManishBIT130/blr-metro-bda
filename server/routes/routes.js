@@ -6,6 +6,27 @@
 const express = require('express');
 const router = express.Router();
 const { getDB } = require('../db');
+const { computeJourney } = require('../journey');
+
+/**
+ * GET /api/routes/journey?from=STATION_A&to=STATION_B
+ * Returns journey details between two stations:
+ *  - number of stops + intermediate stations
+ *  - per-line segments with direction (towards terminus) and distance
+ *  - line-change info (interchange stations)
+ *  - total distance, estimated duration, and fare (approximate demo slabs)
+ */
+router.get('/journey', (req, res) => {
+  const { from, to } = req.query;
+  if (!from || !to) {
+    return res.status(400).json({ error: 'from and to query params are required' });
+  }
+  const journey = computeJourney(from, to);
+  if (journey.error) {
+    return res.status(400).json(journey);
+  }
+  res.json(journey);
+});
 
 /**
  * GET /api/routes?from=WHITEFIELD&to=MAJESTIC

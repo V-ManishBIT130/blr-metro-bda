@@ -95,7 +95,9 @@ blr-metro-bda/
 | `/api/stations` | GET | List all 83 stations |
 | `/api/stations/:id/stats` | GET | Hourly/daily ridership for a station |
 | `/api/stations/nearby?lat=&lng=` | GET | Find nearest stations (geospatial) |
+| `/api/stations/:id/hotspots` | GET | Curated hotspots near a station ($geoNear, 2dsphere) |
 | `/api/routes?from=&to=` | GET | Trip volume between two stations |
+| `/api/routes/journey?from=&to=` | GET | Journey details: stops, line changes, direction, distance, fare, duration |
 | `/api/analytics/top-stations` | GET | Top 10 busiest stations |
 | `/api/analytics/top-routes` | GET | Top 15 busiest OD pairs |
 | `/api/analytics/peak-hours` | GET | System-wide hourly distribution |
