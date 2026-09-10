@@ -11,7 +11,7 @@
  *    - Passenger count scaled by time-of-day
  * 3. Inserts trips in batches of 5,000 for performance.
  *
- * Usage: node scripts/seed.js
+ * Usage: npm run seed
  */
 
 const { MongoClient } = require('mongodb');
@@ -31,6 +31,8 @@ const hotspots = require('../data/hotspots.json');
 const DAYS_OF_DATA = 90;
 const BATCH_SIZE = 5000;
 const TARGET_TRIPS = 1_000_000; // ~1M trips
+const POPUP_RADIUS_M = 3000; // must match the API default in server/routes/stations.js
+const EARTH_RADIUS_M = 6371000;
 
 // ── High-traffic station IDs (appear more often as origin/destination) ──
 const HIGH_TRAFFIC_STATIONS = new Set([
@@ -105,6 +107,64 @@ function passengerCount(multiplier) {
   return Math.max(5, Math.floor(base * (0.5 + multiplier * 1.5)));
 }
 
+/** Great-circle distance between two lat/lng points, in meters. */
+function haversineMeters(lat1, lng1, lat2, lng2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.sqrt(a));
+}
+
+function printHotspotCoverage() {
+  console.log('\n🔎 Hotspot coverage report:');
+  console.log('─'.repeat(80));
+
+  let withinRadius = 0;
+  for (const hotspot of hotspots) {
+    const [lng, lat] = hotspot.location.coordinates;
+    let nearest = null;
+    for (const station of stations) {
+      const [stationLng, stationLat] = station.location.coordinates;
+      const distance = haversineMeters(lat, lng, stationLat, stationLng);
+      if (!nearest || distance < nearest.distance) {
+        nearest = { station, distance };
+      }
+    }
+
+    const covered = nearest.distance <= POPUP_RADIUS_M;
+    if (covered) withinRadius++;
+    console.log(
+      `   ${covered ? '✅' : '⚠️ '} ${hotspot.name.padEnd(46)} → ${nearest.station.name} (${Math.round(nearest.distance)} m)`
+    );
+  }
+
+  console.log('─'.repeat(80));
+  let stationsCovered = 0;
+  const uncovered = [];
+  for (const station of stations) {
+    const [stationLng, stationLat] = station.location.coordinates;
+    const nearestDistance = Math.min(
+      ...hotspots.map((hotspot) => {
+        const [lng, lat] = hotspot.location.coordinates;
+        return haversineMeters(stationLat, stationLng, lat, lng);
+      })
+    );
+    if (nearestDistance <= POPUP_RADIUS_M) stationsCovered++;
+    else uncovered.push(`${station.name} (${Math.round(nearestDistance / 100) / 10} km to nearest hotspot)`);
+  }
+
+  console.log('\n📊 Coverage Summary:');
+  console.log(`   Hotspots within ${POPUP_RADIUS_M / 1000} km of a station: ${withinRadius}/${hotspots.length}`);
+  console.log(`   Stations with ≥1 hotspot within radius:  ${stationsCovered}/${stations.length}`);
+  if (uncovered.length) {
+    console.log(`   Stations using the city-wide fallback (${uncovered.length}) — still show ≥1 hotspot:`);
+    for (const station of uncovered) console.log(`      • ${station}`);
+  }
+}
+
 // ── Main Seed Function ──
 
 async function seed() {
@@ -132,6 +192,7 @@ async function seed() {
     await hotspotsCol.createIndex({ location: '2dsphere' });
     await hotspotsCol.createIndex({ category: 1 });
     console.log(`   ✅ Inserted ${hotspots.length} hotspots with 2dsphere index.`);
+    printHotspotCoverage();
 
     // ── 2. Generate Synthetic Trips ──
     console.log('\n🎫 Generating synthetic trips...');
@@ -143,27 +204,37 @@ async function seed() {
     const startDate = new Date(endDate);
     startDate.setDate(startDate.getDate() - DAYS_OF_DATA);
 
-    // Calculate trips per hour to reach target total
-    // 90 days * 18 active hours ≈ 1620 hourly slots
-    // ~1M / 1620 ≈ 617 trips per active-hour on average
-    // We scale by multiplier so peaks have more, off-peak has fewer
-
     let totalInserted = 0;
     let batch = [];
 
-    const tripsPerHourBase = 700; // base trips per hour at peak
-
+    // Allocate the exact target across hourly slots while preserving the
+    // weekday/weekend and peak-hour weighting from hourlyMultiplier().
+    const hourlySlots = [];
+    let totalWeight = 0;
     for (let day = 0; day < DAYS_OF_DATA; day++) {
       const currentDate = new Date(startDate);
       currentDate.setDate(currentDate.getDate() + day);
-      const dayOfWeek = currentDate.getDay(); // 0=Sun, 6=Sat
+      const dayOfWeek = currentDate.getDay();
       const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
 
       for (let hour = 5; hour <= 23; hour++) {
-        const mult = hourlyMultiplier(hour, isWeekend);
-        const tripsThisHour = Math.floor(tripsPerHourBase * mult);
+        const weight = hourlyMultiplier(hour, isWeekend);
+        hourlySlots.push({ currentDate, hour, weight });
+        totalWeight += weight;
+      }
+    }
 
-        for (let t = 0; t < tripsThisHour; t++) {
+    let allocatedTrips = 0;
+    let cumulativeWeight = 0;
+
+    for (const slot of hourlySlots) {
+      cumulativeWeight += slot.weight;
+      const targetAllocation = Math.floor((cumulativeWeight * TARGET_TRIPS) / totalWeight);
+      const tripsThisHour = targetAllocation - allocatedTrips;
+      allocatedTrips = targetAllocation;
+      const mult = slot.weight;
+
+      for (let t = 0; t < tripsThisHour; t++) {
           // Pick random from/to (ensure they're different)
           let fromIdx = Math.floor(random() * weightedPool.length);
           let toIdx = Math.floor(random() * weightedPool.length);
@@ -177,8 +248,8 @@ async function seed() {
           // Random minute within the hour
           const minute = Math.floor(random() * 60);
           const second = Math.floor(random() * 60);
-          const timestamp = new Date(currentDate);
-          timestamp.setUTCHours(hour, minute, second, 0);
+          const timestamp = new Date(slot.currentDate);
+          timestamp.setUTCHours(slot.hour, minute, second, 0);
 
           // Determine the line of the from_station
           const fromStationData = stations.find(s => s._id === fromStation);
@@ -198,7 +269,6 @@ async function seed() {
             process.stdout.write(`\r   📊 Inserted ${totalInserted.toLocaleString()} trips...`);
             batch = [];
           }
-        }
       }
     }
 

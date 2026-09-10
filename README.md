@@ -36,7 +36,7 @@ This project demonstrates MongoDB's capabilities for storing, querying, and aggr
 # 1. Install dependencies
 npm install
 
-# 2. Seed the database (~1M trip documents, takes ~60-120 seconds)
+# 2. Seed stations, hotspots, indexes, and ~1M trip documents (takes ~60-120 seconds)
 npm run seed
 
 # 3. Start the server
@@ -58,9 +58,10 @@ PORT=3000
 ```
 blr-metro-bda/
 ├── data/
-│   └── stations.json          # 83 stations with name/line/sequence/lat-lng
+│   ├── stations.json          # 83 stations with name/line/sequence/lat-lng
+│   └── hotspots.json          # Curated Bengaluru places for station popups
 ├── scripts/
-│   └── seed.js                # Generates + inserts synthetic trips
+│   └── seed.js                # Seeds stations, hotspots, indexes, and synthetic trips
 ├── server/
 │   ├── index.js               # Express app entry point
 │   ├── db.js                  # MongoDB connection singleton
