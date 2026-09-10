@@ -35,14 +35,15 @@ const tooltipConfig = {
 
 // ── Load Dashboard ──
 async function loadDashboard() {
+  setDashboardLoading(true);
   try {
-    const [topStations, peakHours, lineStats, topRoutes, stationsData] = await Promise.all([
-      fetch('/api/analytics/top-stations').then(r => r.json()),
-      fetch('/api/analytics/peak-hours').then(r => r.json()),
-      fetch('/api/analytics/line-stats').then(r => r.json()),
-      fetch('/api/analytics/top-routes').then(r => r.json()),
+    const [overviewRes, stationsRes] = await Promise.all([
+      fetch('/api/analytics/overview'),
       fetch('/api/stations').then(r => r.json())
     ]);
+    if (!overviewRes.ok) throw new Error(`Analytics request failed: ${overviewRes.status}`);
+    const { topStations, peakHours, lineStats, topRoutes } = await overviewRes.json();
+    const stationsData = await stationsRes;
 
     // ── Summary Stats ──
     const totalPassengers = topStations.reduce((sum, s) => sum + s.total_passengers, 0);
@@ -70,7 +71,23 @@ async function loadDashboard() {
     console.log('📊 Dashboard loaded');
   } catch (err) {
     console.error('Failed to load dashboard:', err);
+    showDashboardError();
+  } finally {
+    setDashboardLoading(false);
   }
+}
+
+function setDashboardLoading(isLoading) {
+  document.querySelectorAll('[data-analysis]').forEach((panel) => {
+    panel.classList.toggle('is-loading', isLoading);
+  });
+}
+
+function showDashboardError() {
+  document.querySelectorAll('[data-analysis]').forEach((panel) => {
+    const label = panel.querySelector('.analysis-loading-label');
+    if (label) label.textContent = 'Unable to load analysis';
+  });
 }
 
 // ── Top 10 Stations ──

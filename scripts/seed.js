@@ -46,6 +46,12 @@ const HIGH_TRAFFIC_STATIONS = new Set([
   'TRINITY', 'RAJAJINAGAR', 'NAGASANDRA'
 ]);
 
+const stationById = new Map(stations.map((station) => [station._id, station]));
+const physicalStationKey = (stationId) => {
+  const station = stationById.get(stationId);
+  return station.location.coordinates.map((coordinate) => coordinate.toFixed(4)).join(',');
+};
+
 // ── Helpers ──
 
 /**
@@ -165,6 +171,46 @@ function printHotspotCoverage() {
   }
 }
 
+async function buildAnalyticsOverview(tripsCol, db) {
+  const [result] = await tripsCol.aggregate([
+    {
+      $facet: {
+        topStations: [
+          { $group: { _id: '$from_station', total_passengers: { $sum: '$passenger_count' }, total_trips: { $sum: 1 } } },
+          { $sort: { total_passengers: -1 } }, { $limit: 10 },
+          { $lookup: { from: 'stations', localField: '_id', foreignField: '_id', as: 'station_info' } },
+          { $project: { _id: 0, station_id: '$_id', total_passengers: 1, total_trips: 1, station_name: { $arrayElemAt: ['$station_info.name', 0] }, line: { $arrayElemAt: ['$station_info.line', 0] } } }
+        ],
+        peakHours: [
+          { $group: { _id: { $hour: '$timestamp' }, total_passengers: { $sum: '$passenger_count' }, total_trips: { $sum: 1 } } },
+          { $sort: { _id: 1 } },
+          { $project: { _id: 0, hour: '$_id', passengers: '$total_passengers', trips: '$total_trips' } }
+        ],
+        lineStats: [
+          { $group: { _id: '$line', total_passengers: { $sum: '$passenger_count' }, total_trips: { $sum: 1 } } },
+          { $sort: { total_passengers: -1 } },
+          { $project: { _id: 0, line: '$_id', passengers: '$total_passengers', trips: '$total_trips' } }
+        ],
+        topRoutes: [
+          { $group: { _id: { from: '$from_station', to: '$to_station' }, total_passengers: { $sum: '$passenger_count' }, total_trips: { $sum: 1 } } },
+          { $lookup: { from: 'stations', localField: '_id.from', foreignField: '_id', as: 'from_info' } },
+          { $lookup: { from: 'stations', localField: '_id.to', foreignField: '_id', as: 'to_info' } },
+          { $match: { $expr: { $ne: [{ $arrayElemAt: ['$from_info.location', 0] }, { $arrayElemAt: ['$to_info.location', 0] }] } } },
+          { $group: { _id: { from: { $arrayElemAt: ['$from_info.name', 0] }, to: { $arrayElemAt: ['$to_info.name', 0] } }, total_passengers: { $sum: '$total_passengers' }, total_trips: { $sum: '$total_trips' } } },
+          { $project: { _id: 0, from_station: '$_id.from', to_station: '$_id.to', from_name: '$_id.from', to_name: '$_id.to', total_passengers: 1, total_trips: 1 } },
+          { $sort: { total_passengers: -1 } }, { $limit: 15 }
+        ]
+      }
+    }
+  ]).toArray();
+
+  await db.collection('analytics_overview').replaceOne(
+    { _id: 'dashboard' },
+    { _id: 'dashboard', ...result, generated_at: new Date() },
+    { upsert: true }
+  );
+}
+
 // ── Main Seed Function ──
 
 async function seed() {
@@ -238,7 +284,7 @@ async function seed() {
           // Pick random from/to (ensure they're different)
           let fromIdx = Math.floor(random() * weightedPool.length);
           let toIdx = Math.floor(random() * weightedPool.length);
-          while (weightedPool[toIdx] === weightedPool[fromIdx]) {
+          while (physicalStationKey(weightedPool[toIdx]) === physicalStationKey(weightedPool[fromIdx])) {
             toIdx = Math.floor(random() * weightedPool.length);
           }
 
@@ -252,7 +298,7 @@ async function seed() {
           timestamp.setUTCHours(slot.hour, minute, second, 0);
 
           // Determine the line of the from_station
-          const fromStationData = stations.find(s => s._id === fromStation);
+          const fromStationData = stationById.get(fromStation);
           const line = fromStationData ? fromStationData.line : 'Purple';
 
           batch.push({
@@ -299,6 +345,10 @@ async function seed() {
       { name: 'timestamp_idx' }
     );
     console.log('   ✅ All indexes created.');
+
+    console.log('\n⚡ Building dashboard analytics cache...');
+    await buildAnalyticsOverview(tripsCol, db);
+    console.log('   ✅ Dashboard analytics cache refreshed.');
 
     // ── 4. Summary ──
     const tripCount = await tripsCol.countDocuments();

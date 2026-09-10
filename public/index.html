@@ -208,7 +208,8 @@
 
         <!-- Charts Row 1 -->
         <div class="charts-grid">
-          <div class="card">
+          <div class="card analysis-panel" data-analysis="top-stations">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading station analysis...</span></div>
             <div class="card-header">
               <span class="card-title">🏆 Top 10 Busiest Stations</span>
               <span class="card-badge">$group + $sort</span>
@@ -217,7 +218,8 @@
               <canvas id="top-stations-chart"></canvas>
             </div>
           </div>
-          <div class="card">
+          <div class="card analysis-panel" data-analysis="peak-hours">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading peak-hour analysis...</span></div>
             <div class="card-header">
               <span class="card-title">⏰ Peak Hours (System-wide)</span>
               <span class="card-badge">$group by $hour</span>
@@ -230,7 +232,8 @@
 
         <!-- Charts Row 2 -->
         <div class="charts-grid">
-          <div class="card">
+          <div class="card analysis-panel" data-analysis="line-stats">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading line analysis...</span></div>
             <div class="card-header">
               <span class="card-title">🚈 Per-Line Ridership</span>
               <span class="card-badge">$group by line</span>
@@ -239,7 +242,8 @@
               <canvas id="line-stats-chart"></canvas>
             </div>
           </div>
-          <div class="card">
+          <div class="card analysis-panel" data-analysis="top-routes">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading route analysis...</span></div>
             <div class="card-header">
               <span class="card-title">🔝 Top 15 Busiest Routes</span>
               <span class="card-badge">$group {from,to}</span>
