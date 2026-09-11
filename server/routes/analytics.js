@@ -334,4 +334,133 @@ router.get('/line-stats', async (req, res) => {
   }
 });
 
+/**
+ * GET /api/analytics/weekday-weekend
+ * Returns weekday vs weekend hourly passenger distribution and comparisons.
+ */
+router.get('/weekday-weekend', async (req, res) => {
+  try {
+    const db = getDB();
+    const stored = await db.collection('analytics_overview').findOne({ _id: 'dashboard' });
+    if (stored && stored.weekdayWeekend) {
+      return res.json(stored.weekdayWeekend);
+    }
+
+    // Fallback on-the-fly aggregation
+    const weekdayWeekendRaw = await db.collection('trips').aggregate([
+      {
+        $project: {
+          hour: { $hour: '$timestamp' },
+          dayOfWeek: { $dayOfWeek: '$timestamp' },
+          passenger_count: 1
+        }
+      },
+      {
+        $group: {
+          _id: {
+            hour: '$hour',
+            isWeekend: { $in: ['$dayOfWeek', [1, 7]] }
+          },
+          passengers: { $sum: '$passenger_count' },
+          trips: { $sum: 1 }
+        }
+      },
+      { $sort: { '_id.hour': 1 } }
+    ]).toArray();
+
+    const weekdayHours = new Array(24).fill(0).map((_, h) => ({ hour: h, passengers: 0, trips: 0 }));
+    const weekendHours = new Array(24).fill(0).map((_, h) => ({ hour: h, passengers: 0, trips: 0 }));
+    let weekdayTotal = 0;
+    let weekendTotal = 0;
+    let weekdayTrips = 0;
+    let weekendTrips = 0;
+
+    for (const item of weekdayWeekendRaw) {
+      const h = item._id.hour;
+      if (item._id.isWeekend) {
+        weekendHours[h] = { hour: h, passengers: item.passengers, trips: item.trips };
+        weekendTotal += item.passengers;
+        weekendTrips += item.trips;
+      } else {
+        weekdayHours[h] = { hour: h, passengers: item.passengers, trips: item.trips };
+        weekdayTotal += item.passengers;
+        weekdayTrips += item.trips;
+      }
+    }
+
+    res.json({
+      weekday: weekdayHours,
+      weekend: weekendHours,
+      weekdayTotal,
+      weekendTotal,
+      weekdayTrips,
+      weekendTrips,
+      weekdayAvgDaily: Math.round(weekdayTotal / 64),
+      weekendAvgDaily: Math.round(weekendTotal / 26),
+      commuteRatio: ((weekdayTotal / 64) / (weekendTotal / 26)).toFixed(2)
+    });
+  } catch (err) {
+    console.error('Error fetching weekday vs weekend analytics:', err);
+    res.status(500).json({ error: 'Failed to fetch weekday-weekend analytics' });
+  }
+});
+
+/**
+ * GET /api/analytics/station-heatmap
+ * Returns 24-hour density distribution for top stations.
+ */
+router.get('/station-heatmap', async (req, res) => {
+  try {
+    const db = getDB();
+    const stored = await db.collection('analytics_overview').findOne({ _id: 'dashboard' });
+    if (stored && stored.stationHeatmap) {
+      return res.json(stored.stationHeatmap);
+    }
+
+    res.status(503).json({ error: 'Heatmap data generating, please refresh shortly' });
+  } catch (err) {
+    console.error('Error fetching station heatmap:', err);
+    res.status(500).json({ error: 'Failed to fetch station heatmap' });
+  }
+});
+
+/**
+ * GET /api/analytics/monthly-trend
+ * Returns longitudinal 90-day daily trajectory, weekly growth and monthly rollups.
+ */
+router.get('/monthly-trend', async (req, res) => {
+  try {
+    const db = getDB();
+    const stored = await db.collection('analytics_overview').findOne({ _id: 'dashboard' });
+    if (stored && stored.monthlyTrend) {
+      return res.json(stored.monthlyTrend);
+    }
+
+    res.status(503).json({ error: 'Trend data generating, please refresh shortly' });
+  } catch (err) {
+    console.error('Error fetching monthly trend:', err);
+    res.status(500).json({ error: 'Failed to fetch monthly trend' });
+  }
+});
+
+/**
+ * GET /api/analytics/interchange-load
+ * Returns multi-line transfer volume dynamics at Majestic and RV Road hubs.
+ */
+router.get('/interchange-load', async (req, res) => {
+  try {
+    const db = getDB();
+    const stored = await db.collection('analytics_overview').findOne({ _id: 'dashboard' });
+    if (stored && stored.interchangeLoad) {
+      return res.json(stored.interchangeLoad);
+    }
+
+    res.status(503).json({ error: 'Interchange data generating, please refresh shortly' });
+  } catch (err) {
+    console.error('Error fetching interchange load:', err);
+    res.status(500).json({ error: 'Failed to fetch interchange load' });
+  }
+});
+
 module.exports = router;
+

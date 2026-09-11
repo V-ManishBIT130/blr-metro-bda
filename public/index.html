@@ -16,7 +16,7 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 
   <!-- App CSS -->
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
   <div class="app-container">
@@ -184,6 +184,29 @@
         </div>
 
         <!-- Summary Stats -->
+        <div class="telemetry-bar" id="telemetry-hud">
+          <div class="telemetry-item">
+            <span class="telemetry-pulse"></span>
+            <span class="telemetry-label">DATABASE:</span>
+            <span class="telemetry-val">MongoDB 7.0 Big Data</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-icon">⚡</span>
+            <span class="telemetry-label">PIPELINE:</span>
+            <span class="telemetry-val">Multi-Stage $facet Aggregation</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-icon">📍</span>
+            <span class="telemetry-label">SPATIAL INDEX:</span>
+            <span class="telemetry-val">2dsphere GeoJSON ($geoNear)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-icon">🚀</span>
+            <span class="telemetry-label">TELEMETRY:</span>
+            <span class="telemetry-val">Precomputed &lt; 5ms Cached</span>
+          </div>
+        </div>
+
         <div class="stats-grid" id="summary-stats">
           <div class="stat-card">
             <div class="stat-icon">🚇</div>
@@ -305,6 +328,102 @@
           </div>
         </div>
 
+        <!-- Charts Row 3: Weekday vs Weekend & Interchange Transit Dynamics -->
+        <div class="charts-grid">
+          <div class="card analysis-panel" data-analysis="weekday-weekend">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading commute analysis...</span></div>
+            <div class="card-header">
+              <div>
+                <span class="card-title">🌓 Weekday vs Weekend Commute Dynamics</span>
+                <div class="card-subtitle">Bimodal work commute peaks vs flat weekend leisure load</div>
+              </div>
+              <span class="card-badge">$dayOfWeek split</span>
+            </div>
+            <div class="ww-metrics-row">
+              <div class="ww-metric-pill">
+                <span class="ww-label">Weekday Daily Avg</span>
+                <strong class="ww-val" id="ww-weekday-avg">—</strong>
+              </div>
+              <div class="ww-metric-pill">
+                <span class="ww-label">Weekend Daily Avg</span>
+                <strong class="ww-val" id="ww-weekend-avg">—</strong>
+              </div>
+              <div class="ww-metric-pill highlight">
+                <span class="ww-label">Commute Surge Multiplier</span>
+                <strong class="ww-val" id="ww-commute-ratio">—</strong>
+              </div>
+            </div>
+            <div class="chart-container" style="height: 250px;">
+              <canvas id="weekday-weekend-chart"></canvas>
+            </div>
+          </div>
+
+          <div class="card analysis-panel" data-analysis="interchange-load">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading interchange analysis...</span></div>
+            <div class="card-header">
+              <div>
+                <span class="card-title">🔀 Multi-Line Interchange Dynamics</span>
+                <div class="card-subtitle">Hub transfer volumes at Majestic &amp; RV Road</div>
+              </div>
+              <span class="card-badge">Transfer Pressure</span>
+            </div>
+            <div class="interchange-cards-container" id="interchange-cards-container">
+              <div class="interchange-loading">Loading interchange dynamics…</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 4: 24-Hour Station Heatmap Matrix -->
+        <div class="charts-grid" style="grid-template-columns: 1fr;">
+          <div class="card analysis-panel" data-analysis="station-heatmap">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading heatmap matrix...</span></div>
+            <div class="card-header">
+              <div>
+                <span class="card-title">🔥 24-Hour Station Demand Heatmap Matrix</span>
+                <div class="card-subtitle">Hourly passenger density across top origin stations</div>
+              </div>
+              <div class="heatmap-legend">
+                <span class="hm-lbl">Low Flow</span>
+                <span class="hm-gradient-bar"></span>
+                <span class="hm-lbl">Peak Surge</span>
+              </div>
+            </div>
+            <div class="heatmap-scroll-wrapper">
+              <table class="heatmap-table" id="station-heatmap-table">
+                <thead>
+                  <tr id="heatmap-thead-row">
+                    <th class="hm-station-col">Station</th>
+                    <!-- 24 hour headers -->
+                  </tr>
+                </thead>
+                <tbody id="heatmap-tbody">
+                  <tr><td colspan="25" style="text-align:center;padding:30px;color:var(--text-muted);">Generating density matrix…</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 5: 90-Day Longitudinal Trajectory -->
+        <div class="charts-grid" style="grid-template-columns: 1fr;">
+          <div class="card analysis-panel" data-analysis="monthly-trend">
+            <div class="analysis-loading" aria-live="polite"><span class="analysis-spinner"></span><span class="analysis-loading-label">Loading longitudinal trend...</span></div>
+            <div class="card-header">
+              <div>
+                <span class="card-title">📈 90-Day Longitudinal Trajectory &amp; Velocity</span>
+                <div class="card-subtitle">System-wide day-by-day ridership trajectory across the full dataset</div>
+              </div>
+              <div class="trend-callouts" id="trend-callouts">
+                <span class="trend-pill" id="trend-peak-pill">Peak Day: —</span>
+                <span class="trend-pill" id="trend-avg-pill">Avg: — / day</span>
+              </div>
+            </div>
+            <div class="chart-container" style="height: 270px;">
+              <canvas id="monthly-trend-chart"></canvas>
+            </div>
+          </div>
+        </div>
+
         <!-- About Note -->
         <div class="about-note">
           <strong>⚠️ About the Data:</strong> All ridership numbers in this dashboard are <strong>synthetic / generated</strong> for
@@ -317,31 +436,70 @@
       <!-- ── Nearby Stations View ── -->
       <section class="nearby-section" id="view-nearby">
         <div class="dashboard-header">
-          <h1 class="dashboard-title">📍 Nearest Stations</h1>
-          <p class="dashboard-desc">Find the closest metro stations to any location using MongoDB's $geoNear and 2dsphere index.</p>
+          <h1 class="dashboard-title">📍 Smart Metro Locator &amp; Geospatial Radar</h1>
+          <p class="dashboard-desc">Find nearest metro stations to any Bengaluru neighborhood, IT hub, or landmark using MongoDB <code>$geoNear</code> and 2dsphere indexing.</p>
         </div>
 
-        <form class="route-search-form" id="nearby-form">
-          <div class="form-group">
-            <label for="nearby-lat">Latitude</label>
-            <input type="number" id="nearby-lat" step="0.0001" placeholder="e.g. 12.9716" value="12.9716" required>
+        <div class="nearby-search-card">
+          <div class="nearby-search-box">
+            <span class="nearby-search-icon">🔍</span>
+            <input type="text" id="nearby-area-input" class="nearby-area-input" placeholder="Type any Bengaluru area or landmark (e.g. Indiranagar, Koramangala, Whitefield, MG Road...)" autocomplete="off" />
+            <button type="button" class="nearby-clear-btn" id="btn-clear-area" style="display:none;" title="Clear search">✕</button>
+            <div class="nearby-dropdown" id="nearby-dropdown" style="display:none;"></div>
           </div>
-          <div class="form-group">
-            <label for="nearby-lng">Longitude</label>
-            <input type="number" id="nearby-lng" step="0.0001" placeholder="e.g. 77.5946" value="77.5946" required>
-          </div>
-          <button type="submit" class="btn-search" id="btn-nearby">Find Nearest</button>
-          <button type="button" class="btn-search" id="btn-use-location" style="background: linear-gradient(135deg, var(--green-line), #059669);">📍 Use My Location</button>
-        </form>
 
-        <div class="nearby-results" id="nearby-results" aria-live="polite"></div>
+          <div class="nearby-actions-row">
+            <button type="button" class="btn-radar-location" id="btn-use-location">
+              <span class="radar-pulse"></span>
+              <span>📍 Detect My GPS Location</span>
+            </button>
+            <button type="button" class="btn-toggle-coords" id="btn-toggle-coords">
+              <span id="coords-toggle-icon">▸</span> Custom Coordinates
+            </button>
+          </div>
+
+          <!-- Quick Select Area Chips -->
+          <div class="quick-areas-bar">
+            <span class="quick-areas-title">Popular Localities:</span>
+            <div class="quick-area-chips" id="quick-area-chips">
+              <!-- Populated dynamically from curated areas -->
+            </div>
+          </div>
+
+          <!-- Optional Coordinates Form for Advanced/Power Users -->
+          <form class="coords-form-collapse" id="coords-form" style="display:none;">
+            <div class="coords-inputs-row">
+              <div class="form-group">
+                <label for="nearby-lat">Latitude</label>
+                <input type="number" id="nearby-lat" step="0.0001" placeholder="12.9716" value="12.9716" />
+              </div>
+              <div class="form-group">
+                <label for="nearby-lng">Longitude</label>
+                <input type="number" id="nearby-lng" step="0.0001" placeholder="77.5946" value="77.5946" />
+              </div>
+              <button type="submit" class="btn-search" id="btn-submit-coords">Query $geoNear</button>
+            </div>
+          </form>
+        </div>
+
+        <div class="nearby-status-bar" id="nearby-status-bar" style="display:none;">
+          <div class="nearby-status-text" id="nearby-status-text">Stations near selection</div>
+          <div class="nearby-radius-filter" id="nearby-radius-filter">
+            <button class="radius-pill active" data-radius="50000">All</button>
+            <button class="radius-pill" data-radius="3000">&lt; 3 km</button>
+            <button class="radius-pill" data-radius="5000">&lt; 5 km</button>
+            <button class="radius-pill" data-radius="10000">&lt; 10 km</button>
+          </div>
+        </div>
+
+        <div class="nearby-results-grid" id="nearby-results" aria-live="polite"></div>
       </section>
 
     </main>
   </div>
 
   <!-- App Scripts -->
-  <script src="map.js?v=6"></script>
-  <script src="dashboard.js?v=4"></script>
+  <script src="map.js?v=7"></script>
+  <script src="dashboard.js?v=5"></script>
 </body>
 </html>

@@ -27,6 +27,26 @@ router.get('/', async (req, res) => {
   }
 });
 
+const areasList = require('../../data/areas.json');
+
+/**
+ * GET /api/stations/areas
+ * Returns curated list of Bengaluru localities, hubs and landmarks for area-based search.
+ */
+router.get('/areas', (req, res) => {
+  const { q } = req.query;
+  if (!q) {
+    return res.json(areasList);
+  }
+  const query = q.toLowerCase().trim();
+  const matched = areasList.filter(a =>
+    a.name.toLowerCase().includes(query) ||
+    a.category.toLowerCase().includes(query) ||
+    (a.description && a.description.toLowerCase().includes(query))
+  );
+  res.json(matched);
+});
+
 /**
  * GET /api/stations/nearby?lat=12.97&lng=77.59&limit=5
  * Uses $geoNear to find nearest stations to a given point.

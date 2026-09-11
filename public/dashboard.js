@@ -20,6 +20,8 @@ let peakHoursChart = null;
 let lineStatsChart = null;
 let routeForwardChart = null;
 let routeReverseChart = null;
+let weekdayWeekendChart = null;
+let monthlyTrendChart = null;
 
 // ── Tooltip Config ──
 const tooltipConfig = {
@@ -42,13 +44,11 @@ async function loadDashboard() {
       fetch('/api/stations').then(r => r.json())
     ]);
     if (!overviewRes.ok) throw new Error(`Analytics request failed: ${overviewRes.status}`);
-    const { topStations, peakHours, lineStats, topRoutes } = await overviewRes.json();
+    const overviewData = await overviewRes.json();
+    const { topStations, peakHours, lineStats, topRoutes, weekdayWeekend, stationHeatmap, monthlyTrend, interchangeLoad } = overviewData;
     const stationsData = await stationsRes;
 
     // ── Summary Stats ──
-    const totalPassengers = topStations.reduce((sum, s) => sum + s.total_passengers, 0);
-    const totalTrips = topStations.reduce((sum, s) => sum + s.total_trips, 0);
-    // Better: use line stats for true totals
     const lineTotal = lineStats.reduce((sum, l) => sum + l.passengers, 0);
     const lineTripTotal = lineStats.reduce((sum, l) => sum + l.trips, 0);
 
@@ -57,8 +57,6 @@ async function loadDashboard() {
     document.getElementById('stat-passengers').textContent = formatNumber(lineTotal);
 
     // ── Network Pulse ──
-    // This translates the dashboard's raw aggregates into a quick planning read:
-    // when demand is strongest, how commute-led it is, and where it concentrates.
     renderNetworkPulse({ topStations, peakHours, lineStats, topRoutes, totalPassengers: lineTotal });
 
     // ── Top Stations Bar Chart ──
@@ -73,7 +71,21 @@ async function loadDashboard() {
     // ── Top Routes Table ──
     renderTopRoutesTable(topRoutes);
 
-    console.log('📊 Dashboard loaded');
+    // ── 4 New Advanced Analytics ──
+    if (weekdayWeekend) {
+      renderWeekdayWeekendChart(weekdayWeekend);
+    }
+    if (interchangeLoad) {
+      renderInterchangeCards(interchangeLoad);
+    }
+    if (stationHeatmap) {
+      renderStationHeatmap(stationHeatmap);
+    }
+    if (monthlyTrend) {
+      renderMonthlyTrendChart(monthlyTrend);
+    }
+
+    console.log('📊 Dashboard loaded with 8 complete analytics pipelines');
   } catch (err) {
     console.error('Failed to load dashboard:', err);
     showDashboardError();
@@ -623,76 +635,652 @@ function renderRouteChart(canvasId, dailyData, color, chartKey) {
 }
 
 // ══════════════════════════════════
-// ── Nearby Stations
+// ── 1. Weekday vs Weekend Analysis
 // ══════════════════════════════════
 
-document.getElementById('nearby-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const lat = document.getElementById('nearby-lat').value;
-  const lng = document.getElementById('nearby-lng').value;
-  await searchNearby(lat, lng);
-});
+function renderWeekdayWeekendChart(data) {
+  const ctx = document.getElementById('weekday-weekend-chart');
+  if (!ctx) return;
+  if (weekdayWeekendChart) weekdayWeekendChart.destroy();
 
-document.getElementById('btn-use-location').addEventListener('click', () => {
-  if (!navigator.geolocation) {
-    alert('Geolocation is not supported by your browser.');
-    return;
+  if (document.getElementById('ww-weekday-avg')) {
+    document.getElementById('ww-weekday-avg').textContent = `${formatNumber(data.weekdayAvgDaily)} / day`;
   }
-  navigator.geolocation.getCurrentPosition(
-    (pos) => {
-      document.getElementById('nearby-lat').value = pos.coords.latitude.toFixed(4);
-      document.getElementById('nearby-lng').value = pos.coords.longitude.toFixed(4);
-      searchNearby(pos.coords.latitude, pos.coords.longitude);
+  if (document.getElementById('ww-weekend-avg')) {
+    document.getElementById('ww-weekend-avg').textContent = `${formatNumber(data.weekendAvgDaily)} / day`;
+  }
+  if (document.getElementById('ww-commute-ratio')) {
+    document.getElementById('ww-commute-ratio').textContent = `${data.commuteRatio}x Surge`;
+  }
+
+  const hours = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+  const weekdayCounts = (data.weekday || []).map(d => Math.round(d.passengers / 64));
+  const weekendCounts = (data.weekend || []).map(d => Math.round(d.passengers / 26));
+
+  weekdayWeekendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: hours,
+      datasets: [
+        {
+          label: 'Weekday Avg (Office Rush)',
+          data: weekdayCounts,
+          borderColor: '#818cf8',
+          backgroundColor: 'rgba(99, 102, 241, 0.22)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#818cf8'
+        },
+        {
+          label: 'Weekend Avg (Leisure Flow)',
+          data: weekendCounts,
+          borderColor: '#f59e0b',
+          backgroundColor: 'rgba(245, 158, 11, 0.12)',
+          fill: true,
+          tension: 0.35,
+          borderWidth: 2.5,
+          pointRadius: 2,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#f59e0b'
+        }
+      ]
     },
-    (err) => {
-      alert('Unable to get your location: ' + err.message);
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { color: '#cbd5e1', boxWidth: 12, usePointStyle: true, font: { size: 11 } }
+        },
+        tooltip: {
+          ...tooltipConfig,
+          callbacks: {
+            label: (ctx) => ` ${ctx.dataset.label}: ${formatNumber(ctx.raw)} avg passengers`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#94a3b8', font: { size: 10 }, callback: (val, idx) => idx % 3 === 0 ? `${idx}h` : '' },
+          grid: { color: 'rgba(148, 163, 184, 0.06)' }
+        },
+        y: {
+          ticks: { callback: (val) => formatNumber(val), color: '#94a3b8', font: { size: 10 } },
+          grid: { color: 'rgba(148, 163, 184, 0.06)' },
+          beginAtZero: true
+        }
+      }
     }
-  );
-});
+  });
+}
 
-async function searchNearby(lat, lng) {
-  const container = document.getElementById('nearby-results');
-  container.setAttribute('aria-busy', 'true');
-  container.innerHTML = '<div class="nearby-message">Finding nearby stations…</div>';
+// ══════════════════════════════════
+// ── 2. Interchange Load Dynamics
+// ══════════════════════════════════
+
+function renderInterchangeCards(data) {
+  const container = document.getElementById('interchange-cards-container');
+  if (!container) return;
+
+  const hubs = [
+    { key: 'majestic', info: data.majestic, desc: 'Central city transit nexus linking East-West Purple Line & North-South Green Line' },
+    { key: 'rvRoad', info: data.rvRoad, desc: 'South Bengaluru hub linking the Green Line & the Electronics City Yellow Line' }
+  ];
+
+  container.innerHTML = hubs.map(h => {
+    const hub = h.info;
+    if (!hub) return '';
+    const outboundTotal = (hub.outbound || []).reduce((s, d) => s + d.passengers, 0);
+    const inboundTotal = (hub.inbound || []).reduce((s, d) => s + d.passengers, 0);
+    const total = outboundTotal + inboundTotal;
+
+    const outPills = (hub.outbound || []).map(o => `
+      <span class="hub-line-chip ${o.line.toLowerCase()}">
+        ● ${o.line}: ${formatNumber(o.passengers)}
+      </span>
+    `).join('');
+
+    return `
+      <div class="interchange-card">
+        <div class="interchange-card-top">
+          <div>
+            <div class="interchange-title">${hub.name}</div>
+            <div class="interchange-sub">${h.desc}</div>
+          </div>
+          <div class="interchange-total-stat">
+            <span class="stat-big-val">${formatNumber(total)}</span>
+            <span class="stat-big-lbl">90-Day Transfers</span>
+          </div>
+        </div>
+
+        <div class="interchange-metrics-bar">
+          <div class="flow-pill">
+            <span class="flow-dir-icon">↗</span>
+            <div>
+              <span class="flow-lbl">Outbound Volume</span>
+              <strong class="flow-val">${formatNumber(outboundTotal)}</strong>
+            </div>
+          </div>
+          <div class="flow-pill">
+            <span class="flow-dir-icon">↙</span>
+            <div>
+              <span class="flow-lbl">Inbound Inflow</span>
+              <strong class="flow-val">${formatNumber(inboundTotal)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="interchange-lines-row">
+          <span class="corridor-lbl">Corridor Distribution:</span>
+          <div class="corridor-pills">${outPills}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ══════════════════════════════════
+// ── 3. Station Demand Heatmap Matrix
+// ══════════════════════════════════
+
+function renderStationHeatmap(data) {
+  const table = document.getElementById('station-heatmap-table');
+  if (!table) return;
+
+  let theadHtml = '<thead><tr><th class="hm-station-col">Station</th>';
+  for (let h = 0; h < 24; h++) {
+    theadHtml += `<th class="hm-hour-col">${h}h</th>`;
+  }
+  theadHtml += '<th class="hm-total-col">Total</th></tr></thead>';
+
+  let systemMax = 1;
+  data.forEach(st => {
+    (st.hourly || []).forEach(val => {
+      if (val > systemMax) systemMax = val;
+    });
+  });
+
+  let tbodyHtml = '<tbody>';
+  data.forEach(st => {
+    const lineClass = (st.line || 'purple').toLowerCase();
+    tbodyHtml += `<tr><td class="hm-station-cell">
+      <div class="hm-station-name-row">
+        <span class="hm-line-dot ${lineClass}"></span>
+        <span class="hm-name" title="${st.station_name}">${st.station_name}</span>
+      </div>
+    </td>`;
+
+    for (let h = 0; h < 24; h++) {
+      const val = (st.hourly && st.hourly[h]) || 0;
+      const ratio = val / systemMax;
+      let bgStyle = '';
+      let textClass = 'hm-val-low';
+
+      if (ratio > 0.75) {
+        bgStyle = `background: rgba(236, 72, 153, ${0.45 + ratio * 0.5}); box-shadow: inset 0 0 8px rgba(236, 72, 153, 0.4);`;
+        textClass = 'hm-val-peak';
+      } else if (ratio > 0.45) {
+        bgStyle = `background: rgba(168, 85, 247, ${0.35 + ratio * 0.4});`;
+        textClass = 'hm-val-high';
+      } else if (ratio > 0.2) {
+        bgStyle = `background: rgba(99, 102, 241, ${0.22 + ratio * 0.35});`;
+        textClass = 'hm-val-mid';
+      } else if (val > 0) {
+        bgStyle = `background: rgba(30, 41, 59, 0.4);`;
+        textClass = 'hm-val-dim';
+      } else {
+        bgStyle = `background: rgba(15, 23, 42, 0.25);`;
+        textClass = 'hm-val-zero';
+      }
+
+      const formatted = val > 0 ? formatNumber(val) : '—';
+      const tooltip = `${st.station_name} at ${h}:00 — ${val.toLocaleString()} passengers`;
+      tbodyHtml += `<td class="hm-cell ${textClass}" style="${bgStyle}" title="${tooltip}">
+        <span class="hm-cell-content">${formatted}</span>
+      </td>`;
+    }
+
+    tbodyHtml += `<td class="hm-total-cell"><strong>${formatNumber(st.total_passengers)}</strong></td></tr>`;
+  });
+  tbodyHtml += '</tbody>';
+
+  table.innerHTML = theadHtml + tbodyHtml;
+}
+
+// ══════════════════════════════════
+// ── 4. 90-Day Longitudinal Trend
+// ══════════════════════════════════
+
+function renderMonthlyTrendChart(data) {
+  const ctx = document.getElementById('monthly-trend-chart');
+  if (!ctx) return;
+  if (monthlyTrendChart) monthlyTrendChart.destroy();
+
+  const daily = data.daily || [];
+  if (data.peakDay && document.getElementById('trend-peak-pill')) {
+    document.getElementById('trend-peak-pill').textContent = `🔥 Peak Day: ${data.peakDay.date} (${formatNumber(data.peakDay.passengers)} pax)`;
+  }
+  if (data.avgDailyPassengers && document.getElementById('trend-avg-pill')) {
+    document.getElementById('trend-avg-pill').textContent = `⚡ 90-Day Avg: ${formatNumber(data.avgDailyPassengers)} / day`;
+  }
+
+  const labels = daily.map(d => d.date);
+  const values = daily.map(d => d.passengers);
+
+  monthlyTrendChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Daily Passengers',
+        data: values,
+        borderColor: '#a855f7',
+        backgroundColor: (context) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return 'rgba(168, 85, 247, 0.15)';
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, 'rgba(168, 85, 247, 0.35)');
+          gradient.addColorStop(1, 'rgba(168, 85, 247, 0.01)');
+          return gradient;
+        },
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2,
+        pointRadius: 0,
+        pointHoverRadius: 6,
+        pointBackgroundColor: '#c084fc',
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...tooltipConfig,
+          callbacks: {
+            title: (items) => `Date: ${items[0].label}`,
+            label: (ctx) => `Ridership: ${formatNumber(ctx.raw)} passengers`
+          }
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            color: '#64748b',
+            font: { size: 10 },
+            maxRotation: 0,
+            callback: (val, idx) => {
+              const d = labels[idx];
+              if (!d) return '';
+              return idx % 10 === 0 ? d.slice(5) : '';
+            }
+          },
+          grid: { color: 'rgba(148, 163, 184, 0.05)' }
+        },
+        y: {
+          ticks: {
+            callback: (val) => formatNumber(val),
+            color: '#64748b',
+            font: { size: 10 }
+          },
+          grid: { color: 'rgba(148, 163, 184, 0.06)' },
+          beginAtZero: false
+        }
+      }
+    }
+  });
+}
+
+// ══════════════════════════════════
+// ── 5. Smart Metro Locator & Nearby Search
+// ══════════════════════════════════
+
+let allBangaloreAreas = [];
+let currentNearbyStations = [];
+let activeNearbyFilterRadius = 50000;
+
+async function initNearbySection() {
   try {
-    const res = await fetch(`/api/stations/nearby?lat=${lat}&lng=${lng}&limit=10`);
-    if (!res.ok) throw new Error(`Nearby search failed: ${res.status}`);
-    const data = await res.json();
+    const res = await fetch('/api/stations/areas');
+    if (res.ok) {
+      allBangaloreAreas = await res.json();
+    }
+  } catch (err) {
+    console.warn('Could not load areas from API:', err);
+  }
 
-    const lc = { Purple: '#a855f7', Green: '#22c55e', Yellow: '#eab308' };
+  renderPopularAreaChips();
+  setupAreaAutocomplete();
 
-    if (!data.length) {
-      container.innerHTML = '<div class="nearby-message">No stations found within 50 km of these coordinates.</div>';
+  // Custom coordinates toggle
+  const toggleBtn = document.getElementById('btn-toggle-coords');
+  const coordsForm = document.getElementById('coords-form');
+  const toggleIcon = document.getElementById('coords-toggle-icon');
+  if (toggleBtn && coordsForm) {
+    toggleBtn.addEventListener('click', () => {
+      const isOpen = coordsForm.style.display !== 'none';
+      coordsForm.style.display = isOpen ? 'none' : 'block';
+      if (toggleIcon) toggleIcon.textContent = isOpen ? '▸' : '▾';
+    });
+  }
+
+  if (coordsForm) {
+    coordsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const lat = parseFloat(document.getElementById('nearby-lat').value);
+      const lng = parseFloat(document.getElementById('nearby-lng').value);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        await searchNearby(lat, lng, `Coordinates (${lat.toFixed(3)}, ${lng.toFixed(3)})`);
+      }
+    });
+  }
+
+  // GPS Location button
+  const gpsBtn = document.getElementById('btn-use-location');
+  if (gpsBtn) {
+    gpsBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        alert('Geolocation is not supported by your browser.');
+        return;
+      }
+      gpsBtn.classList.add('scanning');
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          gpsBtn.classList.remove('scanning');
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const input = document.getElementById('nearby-area-input');
+          if (input) input.value = `📍 Current Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+          await searchNearby(lat, lng, 'Your Current Location');
+        },
+        (err) => {
+          gpsBtn.classList.remove('scanning');
+          alert('Unable to detect GPS location: ' + err.message);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    });
+  }
+
+  // Radius filter pills
+  const radiusPills = document.querySelectorAll('.nearby-radius-filter .radius-pill');
+  radiusPills.forEach(pill => {
+    pill.addEventListener('click', () => {
+      radiusPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      activeNearbyFilterRadius = parseInt(pill.dataset.radius, 10) || 50000;
+      renderNearbyCards(currentNearbyStations, activeNearbyFilterRadius);
+    });
+  });
+
+  // Default initial scan around central city (MG Road / Vidhana Soudha)
+  searchNearby(12.9756, 77.6080, 'MG Road / Central Bengaluru');
+}
+
+function renderPopularAreaChips() {
+  const container = document.getElementById('quick-area-chips');
+  if (!container) return;
+
+  const popularNames = [
+    'Indiranagar', 'Koramangala', 'Whitefield', 'HSR Layout',
+    'MG Road', 'Malleshwaram', 'BTM Layout', 'Electronic City',
+    'Jayanagar', 'Cubbon Park', 'Central Silk Board', 'Hebbal'
+  ];
+
+  container.innerHTML = popularNames.map(name => {
+    const area = allBangaloreAreas.find(a => a.name.toLowerCase() === name.toLowerCase()) || {
+      name, coordinates: [77.6, 12.97]
+    };
+    return `<button type="button" class="quick-chip" onclick="window.__selectAreaChip('${area.name}')">${area.name}</button>`;
+  }).join('');
+}
+
+window.__selectAreaChip = function (areaName) {
+  const area = allBangaloreAreas.find(a => a.name.toLowerCase() === areaName.toLowerCase());
+  if (!area) return;
+  const input = document.getElementById('nearby-area-input');
+  const clearBtn = document.getElementById('btn-clear-area');
+  const dropdown = document.getElementById('nearby-dropdown');
+
+  if (input) input.value = area.name;
+  if (clearBtn) clearBtn.style.display = 'block';
+  if (dropdown) dropdown.style.display = 'none';
+
+  searchNearby(area.coordinates[1], area.coordinates[0], area.name);
+};
+
+function setupAreaAutocomplete() {
+  const input = document.getElementById('nearby-area-input');
+  const clearBtn = document.getElementById('btn-clear-area');
+  const dropdown = document.getElementById('nearby-dropdown');
+  if (!input || !dropdown) return;
+
+  let selectedIdx = -1;
+
+  input.addEventListener('input', () => {
+    const val = input.value.trim().toLowerCase();
+    if (!val) {
+      dropdown.style.display = 'none';
+      if (clearBtn) clearBtn.style.display = 'none';
+      return;
+    }
+    if (clearBtn) clearBtn.style.display = 'block';
+
+    const matches = allBangaloreAreas.filter(a =>
+      a.name.toLowerCase().includes(val) ||
+      a.category.toLowerCase().includes(val) ||
+      (a.description && a.description.toLowerCase().includes(val))
+    ).slice(0, 8);
+
+    if (!matches.length) {
+      dropdown.innerHTML = '<div class="dropdown-empty">No matching Bengaluru areas found</div>';
+      dropdown.style.display = 'block';
       return;
     }
 
-    container.innerHTML = data.map((s, i) => {
-      const distKm = (s.distance_meters / 1000).toFixed(2);
-      const color = lc[s.line] || '#6366f1';
-      return `
-        <div class="nearby-card fade-in" style="animation-delay: ${i * 50}ms; border-left: 3px solid ${color};">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-            <strong style="font-size:15px;">${s.name}</strong>
-            <span class="distance">${distKm} km</span>
-          </div>
-          <span class="popup-line-badge ${s.line.toLowerCase()}" style="margin-bottom:4px;">
-            ● ${s.line} Line
-          </span>
-          <div style="margin-top:8px;font-size:12px;color:var(--text-muted);">
-            ${s.is_interchange ? '⇄ Interchange Station · ' : ''}
-            Station #${s.sequence} · ${s.distance_meters.toFixed(0)}m away
-          </div>
+    selectedIdx = -1;
+    dropdown.innerHTML = matches.map((m, idx) => `
+      <div class="dropdown-item" data-idx="${idx}">
+        <div class="dd-title-row">
+          <strong class="dd-name">${m.name}</strong>
+          <span class="dd-cat">${m.category}</span>
+        </div>
+        <div class="dd-desc">${m.description || ''}</div>
+      </div>
+    `).join('');
+
+    dropdown.style.display = 'block';
+
+    dropdown.querySelectorAll('.dropdown-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const idx = parseInt(item.dataset.idx, 10);
+        const area = matches[idx];
+        if (area) {
+          input.value = area.name;
+          dropdown.style.display = 'none';
+          searchNearby(area.coordinates[1], area.coordinates[0], area.name);
+        }
+      });
+    });
+  });
+
+  input.addEventListener('keydown', (e) => {
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    if (dropdown.style.display === 'none' || !items.length) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const first = allBangaloreAreas.find(a => a.name.toLowerCase().includes(input.value.trim().toLowerCase()));
+        if (first) {
+          input.value = first.name;
+          searchNearby(first.coordinates[1], first.coordinates[0], first.name);
+        }
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIdx = (selectedIdx + 1) % items.length;
+      items.forEach((item, i) => item.classList.toggle('highlighted', i === selectedIdx));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIdx = (selectedIdx - 1 + items.length) % items.length;
+      items.forEach((item, i) => item.classList.toggle('highlighted', i === selectedIdx));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIdx >= 0 && items[selectedIdx]) {
+        items[selectedIdx].click();
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.style.display = 'none';
+    }
+  });
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      input.value = '';
+      clearBtn.style.display = 'none';
+      dropdown.style.display = 'none';
+      input.focus();
+    });
+  }
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.nearby-search-box')) {
+      dropdown.style.display = 'none';
+    }
+  });
+}
+
+async function searchNearby(lat, lng, locationLabel = '') {
+  const container = document.getElementById('nearby-results');
+  const statusBar = document.getElementById('nearby-status-bar');
+  const statusText = document.getElementById('nearby-status-text');
+
+  if (statusBar) statusBar.style.display = 'flex';
+  if (statusText) statusText.innerHTML = `Scanning 2dsphere index for stations near <strong>${locationLabel || 'coordinates'}</strong>…`;
+
+  container.innerHTML = `
+    <div class="nearby-loading-state">
+      <div class="radar-scan-anim"></div>
+      <div class="nl-text">Executing MongoDB 2dsphere $geoNear spatial pipeline…</div>
+    </div>
+  `;
+
+  try {
+    const res = await fetch(`/api/stations/nearby?lat=${lat}&lng=${lng}&limit=12`);
+    if (!res.ok) throw new Error(`Nearby search failed: ${res.status}`);
+    const data = await res.json();
+    currentNearbyStations = data;
+
+    if (!data.length) {
+      container.innerHTML = `
+        <div class="nearby-empty-state">
+          <span class="ne-icon">📍</span>
+          <strong>No Stations within 50 km</strong>
+          <p>No metro stations found near ${locationLabel}. Try another locality in Bengaluru.</p>
         </div>
       `;
-    }).join('');
+      return;
+    }
 
+    if (statusText) {
+      statusText.innerHTML = `Showing <strong>${data.length} closest stations</strong> to <strong>${locationLabel || 'location'}</strong>`;
+    }
+
+    renderNearbyCards(data, activeNearbyFilterRadius);
   } catch (err) {
     console.error('Nearby search failed:', err);
-    container.innerHTML = '<div class="nearby-message error">We could not find nearby stations. Check the coordinates and try again.</div>';
-  } finally {
-    container.setAttribute('aria-busy', 'false');
+    container.innerHTML = `<div class="nearby-error-state">⚠️ Failed to query geospatial nearby stations. Check coordinates and try again.</div>`;
   }
+}
+
+function renderNearbyCards(stations, maxDistanceMeters = 50000) {
+  const container = document.getElementById('nearby-results');
+  const filtered = stations.filter(s => s.distance_meters <= maxDistanceMeters);
+
+  if (!filtered.length) {
+    container.innerHTML = `
+      <div class="nearby-empty-state">
+        <span class="ne-icon">🔍</span>
+        <strong>No stations within this distance filter</strong>
+        <p>Try clicking a wider radius like &lt; 10 km or All.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const lc = { Purple: '#a855f7', Green: '#22c55e', Yellow: '#eab308' };
+
+  container.innerHTML = filtered.map((s, i) => {
+    const distKm = (s.distance_meters / 1000).toFixed(2);
+    const color = lc[s.line] || '#6366f1';
+    const walkMins = Math.max(1, Math.round(s.distance_meters / 80));
+    const driveMins = Math.max(1, Math.round(s.distance_meters / 350));
+    const lineClass = (s.line || 'purple').toLowerCase();
+
+    return `
+      <div class="nearby-futuristic-card fade-in" style="animation-delay: ${i * 40}ms; --card-accent: ${color};">
+        <div class="nfc-top">
+          <div class="nfc-station-badge">
+            <span class="nfc-line-dot ${lineClass}"></span>
+            <span class="nfc-line-name">${s.line} Line</span>
+          </div>
+          <div class="nfc-distance-tag">
+            <span class="dist-val">${distKm}</span>
+            <span class="dist-unit">km</span>
+          </div>
+        </div>
+
+        <div class="nfc-name">${s.name}</div>
+
+        <div class="nfc-commute-estimate">
+          <div class="nfc-est-item">
+            <span class="est-icon">🚶</span>
+            <span class="est-val">${walkMins} min</span>
+            <span class="est-sub">walk</span>
+          </div>
+          <div class="nfc-est-item">
+            <span class="est-icon">🚗</span>
+            <span class="est-val">${driveMins} min</span>
+            <span class="est-sub">cab / auto</span>
+          </div>
+          <div class="nfc-est-item">
+            <span class="est-icon">🎯</span>
+            <span class="est-val">#${s.sequence}</span>
+            <span class="est-sub">sequence</span>
+          </div>
+        </div>
+
+        <div class="nfc-meta-row">
+          ${s.is_interchange ? '<span class="nfc-interchange-badge">⇄ Interchange Junction</span>' : '<span class="nfc-regular-badge">● Standard Station</span>'}
+          <span class="nfc-raw-dist">${Math.round(s.distance_meters)}m exact</span>
+        </div>
+
+        <div class="nfc-actions">
+          <button type="button" class="btn-nfc-action btn-nfc-map" onclick="window.focusStationOnMap('${s._id}')">
+            <span>🗺️</span> View on Map
+          </button>
+          <button type="button" class="btn-nfc-action btn-nfc-route" onclick="window.setRouteToStation('${s._id}')">
+            <span>🔀</span> Plan Route
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // ── Initialize ──
 populateStationDropdowns();
+initNearbySection();
+
